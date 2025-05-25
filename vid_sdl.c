@@ -141,10 +141,6 @@ void    VID_Init (unsigned char *palette)
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     if (!renderer) {
-        // Fallback to software renderer if accelerated fails
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-    }
-    if (!renderer) {
         SDL_DestroyWindow(window);
         Sys_Error("VID: Couldn't create renderer: %s\n", SDL_GetError());
     }
