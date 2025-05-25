@@ -106,6 +106,7 @@ void    VID_Init (unsigned char *palette)
     Uint32 flags;
     char caption[50];
     Uint32 window_flags = 0; // For SDL_CreateWindow
+    Uint32 sdl_pixel_format;
 
     // Load the SDL library
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
@@ -144,8 +145,10 @@ void    VID_Init (unsigned char *palette)
         SDL_DestroyWindow(window);
         Sys_Error("VID: Couldn't create renderer: %s\n", SDL_GetError());
     }
+    
+    sdl_pixel_format = SDL_GetWindowPixelFormat (window);
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+    texture = SDL_CreateTexture(renderer, sdl_pixel_format,
                                 SDL_TEXTUREACCESS_STREAMING,
                                 vid.width, vid.height);
     if (!texture) {
