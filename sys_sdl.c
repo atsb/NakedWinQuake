@@ -63,6 +63,8 @@ void Sys_Printf (char *fmt, ...)
 void Sys_Quit (void)
 {
 	Host_Shutdown();
+	// Ensure all SDL subsystems are shut down before exiting.
+	SDL_Quit(); // Add this line
 	exit(0);
 }
 
@@ -296,32 +298,14 @@ void Sys_DebugLog(char *file, char *fmt, ...)
 
 double Sys_FloatTime (void)
 {
-#ifdef __WIN32__
-
-	static int starttime = 0;
-
-	if ( ! starttime )
-		starttime = clock();
-
-	return (clock()-starttime)*1.0/1024;
-
-#else
-
-    struct timeval tp;
-    struct timezone tzp; 
-    static int      secbase; 
-    
-    gettimeofday(&tp, &tzp);  
-
-    if (!secbase)
-    {
-        secbase = tp.tv_sec;
-        return tp.tv_usec/1000000.0;
+    static Uint64 start_ticks = 0;
+    if (start_ticks == 0) {
+        // SDL_Init() must have been called before this for SDL_GetTicks64 to work.
+        // It is called in VID_Init which is called by Host_Init.
+        start_ticks = SDL_GetTicks64();
     }
-
-    return (tp.tv_sec - secbase) + tp.tv_usec/1000000.0;
-
-#endif
+    Uint64 current_ticks = SDL_GetTicks64();
+    return (current_ticks - start_ticks) / 1000.0;
 }
 
 // =======================================================================

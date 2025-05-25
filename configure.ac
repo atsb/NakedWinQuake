@@ -58,11 +58,11 @@ AS_CASE(
 AC_SUBST(MATHLIB)
 AC_SUBST(INETLIB)
 
-dnl Check for SDL
-PKG_CHECK_MODULES([SDL],
-	[sdl >= 1.2.0],
-	[CFLAGS="$CFLAGS $SDL_CFLAGS"; CPPFLAGS="$CPPFLAGS -DSDL"; LIBS="$LIBS $SDL_LIBS"],
-	AC_MSG_ERROR([*** SDL version 1.2 not found!]))
+dnl Check for SDL2
+PKG_CHECK_MODULES([SDL2],
+	[sdl2 >= 2.0.0],
+	[CFLAGS="$CFLAGS $SDL2_CFLAGS"; CPPFLAGS="$CPPFLAGS -DSDL"; LIBS="$LIBS $SDL2_LIBS"],
+	AC_MSG_ERROR([*** SDL2 version 2.0.0 not found!]))
 
 dnl Set up the icon object file, for Mingw32
 AS_CASE(

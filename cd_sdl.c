@@ -397,11 +397,12 @@ int CDAudio_Init(void)
 	if (COM_CheckParm("-nocdaudio"))
 		return -1;
 
-	if (SDL_InitSubSystem(SDL_INIT_CDROM) == -1)
-	{
-		Con_Printf("Couldn't init SDL cdrom: %s\n", SDL_GetError());
-		return -1;
-	}
+	// SDL_InitSubSystem(SDL_INIT_CDROM) removed
+	// if (SDL_InitSubSystem(SDL_INIT_CDROM) == -1)
+	// {
+	//	Con_Printf("Couldn't init SDL cdrom: %s\n", SDL_GetError());
+	//	return -1;
+	// }
 
 	sdl_num_drives = SDL_CDNumDrives ();
 	Con_Printf ("SDL detected %d CD-ROM drive%c\n", sdl_num_drives,
@@ -472,7 +473,8 @@ void CDAudio_Shutdown(void)
 	SDL_CDClose(cd_handle);
 	cd_handle = NULL;
 	cd_dev = -1;
-	SDL_QuitSubSystem(SDL_INIT_CDROM);
+	// SDL_QuitSubSystem(SDL_INIT_CDROM) removed
+	// SDL_QuitSubSystem(SDL_INIT_CDROM);
 }
 
 #endif	/* SDL_INIT_CDROM */
