@@ -1,11 +1,11 @@
 
 #include <stdio.h>
 #include "SDL_audio.h"
-#include "SDL_byteorder.h"
 #include "quakedef.h"
 
 static dma_t the_shm;
 static int snd_inited;
+static SDL_AudioDeviceID audio_dev_id = 0;
 
 extern int desired_speed;
 extern int desired_bits;
@@ -48,7 +48,9 @@ qboolean SNDDMA_Init(void)
 	desired.callback = paint_audio;
 
 	/* Open the audio device */
-	if ( SDL_OpenAudio(&desired, &obtained) < 0 ) {
+	// if ( SDL_OpenAudio(&desired, &obtained) < 0 ) { // SDL1
+	audio_dev_id = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, SDL_AUDIO_ALLOW_ANY_CHANGE);
+	if ( audio_dev_id == 0 ) {
         	Con_Printf("Couldn't open SDL audio: %s\n", SDL_GetError());
 		return 0;
 	}
@@ -70,16 +72,29 @@ qboolean SNDDMA_Init(void)
 			/* Unsupported, fall through */;
 		default:
 			/* Not supported -- force SDL to do our bidding */
-			SDL_CloseAudio();
-			if ( SDL_OpenAudio(&desired, NULL) < 0 ) {
-        			Con_Printf("Couldn't open SDL audio: %s\n",
-							SDL_GetError());
+			// SDL_CloseAudio(); // SDL1
+			// if ( SDL_OpenAudio(&desired, NULL) < 0 ) { // SDL1
+        	//		Con_Printf("Couldn't open SDL audio: %s\n",
+			//				SDL_GetError());
+			//	return 0;
+			// }
+			// memcpy(&obtained, &desired, sizeof(desired)); // SDL1
+			Con_Printf("SDL Audio: Desired format not directly supported. Will try to force.\n");
+			SDL_CloseAudioDevice(audio_dev_id); // Close the first attempt
+			// For the second attempt, pass desired as the spec we want, and allow no changes.
+			// We still need an 'obtained_fallback' struct for the call.
+			SDL_AudioSpec obtained_fallback;
+			audio_dev_id = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained_fallback, 0); // 0 for no allowed changes
+			if ( audio_dev_id == 0 ) {
+				Con_Printf("Couldn't open SDL audio with forced desired format: %s\n", SDL_GetError());
 				return 0;
 			}
-			memcpy(&obtained, &desired, sizeof(desired));
+			// If this succeeds, obtained_fallback should match desired. We'll use 'desired' for setting up shm.
+			memcpy(&obtained, &desired, sizeof(desired)); // Keep consistency with how 'obtained' is used later.
 			break;
 	}
-	SDL_PauseAudio(0);
+	// SDL_PauseAudio(0); // SDL1
+	SDL_PauseAudioDevice(audio_dev_id, 0); // 0 means unpause
 
 	/* Fill the audio DMA information block */
 	shm = &the_shm;
@@ -105,7 +120,11 @@ void SNDDMA_Shutdown(void)
 {
 	if (snd_inited)
 	{
-		SDL_CloseAudio();
+		// SDL_CloseAudio(); // SDL1
+		if (audio_dev_id != 0) {
+			SDL_CloseAudioDevice(audio_dev_id);
+			audio_dev_id = 0;
+		}
 		snd_inited = 0;
 	}
 }
