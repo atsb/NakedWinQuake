@@ -8,7 +8,7 @@ viddef_t    vid;                // global video state
 unsigned short  d_8to16table[256];
 
 #define BASEWIDTH           320
-#define BASEHEIGHT          240
+#define BASEHEIGHT          200
 
 unsigned screenWidth = 320;
 unsigned screenHeight = 200;
@@ -114,8 +114,8 @@ void    VID_Init (unsigned char *palette)
     // Set up display mode (width and height)
     vid.width = screenWidth;
     vid.height = screenHeight;
-    vid.maxwarpwidth = WARP_WIDTH;
-    vid.maxwarpheight = WARP_HEIGHT;
+    vid.maxwarpwidth = screenWidth;
+    vid.maxwarpheight = screenHeight;
 
     if ( !COM_CheckParm ("-window") ) {
         window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -139,7 +139,7 @@ void    VID_Init (unsigned char *palette)
         Sys_Error("VID: Couldn't create window: %s\n", SDL_GetError());
     }
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     if (!renderer) {
         // Fallback to software renderer if accelerated fails
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
@@ -175,7 +175,7 @@ void    VID_Init (unsigned char *palette)
     // Update vid structure members
     VGA_width = vid.conwidth = vid.width;
     VGA_height = vid.conheight = vid.height;
-    vid.aspect = ((float)vid.height / (float)vid.width) * (320.0 / 240.0);
+    vid.aspect = ((float)vid.height / (float)vid.width) * (320.0 / 200.0);
     vid.numpages = 1;
     vid.colormap = host_colormap;
     vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
