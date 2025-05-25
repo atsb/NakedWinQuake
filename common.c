@@ -1092,7 +1092,7 @@ void COM_CheckRegistered (void)
 #if WINDED
 	Sys_Error ("This dedicated server requires a full registered copy of Quake");
 #endif
-		Con_Printf ("Playing shareware version.\n");
+		Con_Printf ("\nPlaying shareware version.\n");
 		if (com_modified)
 			Sys_Error ("You must have the registered version to use modified games");
 		return;
@@ -1100,15 +1100,15 @@ void COM_CheckRegistered (void)
 
 	Sys_FileRead (h, check, sizeof(check));
 	COM_CloseFile (h);
-
+	
 	for (i=0 ; i<128 ; i++)
 		if (pop[i] != (unsigned short)BigShort (check[i]))
 			Sys_Error ("Corrupted data file.");
-
-	Cvar_Set ("cmdline", com_cmdline+1); //johnfitz -- eliminate leading space
+	
+	Cvar_Set ("cmdline", com_cmdline);
 	Cvar_Set ("registered", "1");
 	static_registered = 1;
-	Con_Printf ("Playing registered version.\n");
+	Con_Printf ("\nPlaying registered version.\n");
 }
 
 
