@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // zone.c
 
 #include "quakedef.h"
+#include "mathlib.h"
 
 #define	DYNAMIC_SIZE	256*1024
 

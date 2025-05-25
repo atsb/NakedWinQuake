@@ -118,7 +118,7 @@ void    VID_Init (unsigned char *palette)
     vid.maxwarpheight = screenHeight;
 
     if ( !COM_CheckParm ("-window") ) {
-        window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        window_flags |= SDL_WINDOW_FULLSCREEN;
     }
     
     SDL_DisplayMode DispMode;
@@ -139,7 +139,7 @@ void    VID_Init (unsigned char *palette)
         Sys_Error("VID: Couldn't create window: %s\n", SDL_GetError());
     }
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     if (!renderer) {
         SDL_DestroyWindow(window);
         Sys_Error("VID: Couldn't create renderer: %s\n", SDL_GetError());

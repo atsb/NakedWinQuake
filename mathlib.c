@@ -1,7 +1,5 @@
 /*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
-Copyright (C) 2007-2008 Kristian Duske
+Copyright (C) 1996-1997 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -10,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 
 See the GNU General Public License for more details.
 
@@ -31,30 +29,7 @@ int nanmask = 255<<23;
 
 /*-----------------------------------------------------------------*/
 
-
-//#define DEG2RAD( a ) ( a * M_PI ) / 180.0F
-#define DEG2RAD( a ) ( (a) * M_PI_DIV_180 ) //johnfitz
-
-// kristian - missing math functions
-#ifndef max
-int max (int x, int y)
-{
-    if (x > y)
-        return x;
-        
-    return y;
-}
-#endif
-#ifndef min
-int min (int x, int y)
-{
-    if (x < y)
-        return x;
-    
-    return y;
-}
-#endif
-// kristian
+#define DEG2RAD( a ) ( a * M_PI ) / 180.0F
 
 void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal )
 {
@@ -110,7 +85,69 @@ void PerpendicularVector( vec3_t dst, const vec3_t src )
 	VectorNormalize( dst );
 }
 
-//johnfitz -- removed RotatePointAroundVector() becuase it's no longer used and my compiler fucked it up anyway
+#ifdef _WIN32
+#pragma optimize( "", off )
+#endif
+
+
+void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
+{
+	float	m[3][3];
+	float	im[3][3];
+	float	zrot[3][3];
+	float	tmpmat[3][3];
+	float	rot[3][3];
+	int	i;
+	vec3_t vr, vup, vf;
+
+	vf[0] = dir[0];
+	vf[1] = dir[1];
+	vf[2] = dir[2];
+
+	PerpendicularVector( vr, dir );
+	CrossProduct( vr, vf, vup );
+
+	m[0][0] = vr[0];
+	m[1][0] = vr[1];
+	m[2][0] = vr[2];
+
+	m[0][1] = vup[0];
+	m[1][1] = vup[1];
+	m[2][1] = vup[2];
+
+	m[0][2] = vf[0];
+	m[1][2] = vf[1];
+	m[2][2] = vf[2];
+
+	memcpy( im, m, sizeof( im ) );
+
+	im[0][1] = m[1][0];
+	im[0][2] = m[2][0];
+	im[1][0] = m[0][1];
+	im[1][2] = m[2][1];
+	im[2][0] = m[0][2];
+	im[2][1] = m[1][2];
+
+	memset( zrot, 0, sizeof( zrot ) );
+	zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
+
+	zrot[0][0] = cos( DEG2RAD( degrees ) );
+	zrot[0][1] = sin( DEG2RAD( degrees ) );
+	zrot[1][0] = -sin( DEG2RAD( degrees ) );
+	zrot[1][1] = cos( DEG2RAD( degrees ) );
+
+	R_ConcatRotations( m, zrot, tmpmat );
+	R_ConcatRotations( tmpmat, im, rot );
+
+	for ( i = 0; i < 3; i++ )
+	{
+		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
+	}
+}
+
+#ifdef _WIN32
+#pragma optimize( "", on )
+#endif
 
 /*-----------------------------------------------------------------*/
 
@@ -140,6 +177,8 @@ void BOPS_Error (void)
 }
 
 
+#if	!id386
+
 /*
 ==================
 BoxOnPlaneSide
@@ -164,7 +203,7 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, mplane_t *p)
 		return 3;
 	}
 #endif
-
+	
 // general case
 	switch (p->signbits)
 	{
@@ -247,25 +286,14 @@ if (sides == 0)
 	return sides;
 }
 
-//johnfitz -- the opposite of AngleVectors.  this takes forward and generates pitch yaw roll
-//TODO: take right and up vectors to properly set yaw and roll
-void VectorAngles (const vec3_t forward, vec3_t angles)
-{
-	vec3_t temp;
+#endif
 
-	temp[0] = forward[0];
-	temp[1] = forward[1];
-	temp[2] = 0;
-	angles[PITCH] = -atan2(forward[2], Length(temp)) / M_PI_DIV_180;
-	angles[YAW] = atan2(forward[1], forward[0]) / M_PI_DIV_180;
-	angles[ROLL] = 0;
-}
 
 void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 {
 	float		angle;
 	float		sr, sp, sy, cr, cp, cy;
-
+	
 	angle = angles[YAW] * (M_PI*2 / 360);
 	sy = sin(angle);
 	cy = cos(angle);
@@ -290,11 +318,11 @@ void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 int VectorCompare (vec3_t v1, vec3_t v2)
 {
 	int		i;
-
+	
 	for (i=0 ; i<3 ; i++)
 		if (v1[i] != v2[i])
 			return 0;
-
+			
 	return 1;
 }
 
@@ -345,7 +373,7 @@ vec_t Length(vec3_t v)
 {
 	int		i;
 	float	length;
-
+	
 	length = 0;
 	for (i=0 ; i< 3 ; i++)
 		length += v[i]*v[i];
@@ -368,7 +396,7 @@ float VectorNormalize (vec3_t v)
 		v[1] *= ilength;
 		v[2] *= ilength;
 	}
-
+		
 	return length;
 
 }
