@@ -300,8 +300,6 @@ double Sys_FloatTime (void)
 {
     static Uint64 start_ticks = 0;
     if (start_ticks == 0) {
-        // SDL_Init() must have been called before this for SDL_GetTicks64 to work.
-        // It is called in VID_Init which is called by Host_Init.
         start_ticks = SDL_GetTicks64();
     }
     Uint64 current_ticks = SDL_GetTicks64();
@@ -368,7 +366,6 @@ int main (int c, char **v)
 
 	moncontrol(0);
 
-//	signal(SIGFPE, floating_point_exception_handler);
 	signal(SIGFPE, SIG_IGN);
 
 	parms.memsize = 1024*1024*1024;

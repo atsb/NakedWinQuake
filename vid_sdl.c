@@ -10,12 +10,14 @@ unsigned short  d_8to16table[256];
 #define BASEWIDTH           320
 #define BASEHEIGHT          240
 
+unsigned screenWidth = 320;
+unsigned screenHeight = 200;
+
 int    VGA_width, VGA_height, VGA_rowbytes, VGA_bufferrowbytes = 0;
 byte    *VGA_pagebase;
 
 static int	lockcount;
 static qboolean	vid_initialized = false;
-// static SDL_Surface *screen; // Replaced by window, renderer, texture
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Texture *texture;
@@ -35,8 +37,6 @@ void    VID_SetPalette (unsigned char *palette)
 {
 	int		i;
 	SDL_Color colors[256];
-	// SDL_PixelFormat* temp_format = NULL; // For SDL_MapRGB if used
-
 	palette_changed = true;
 
 	if (palette != vid_curpal)
@@ -49,24 +49,13 @@ void    VID_SetPalette (unsigned char *palette)
 		colors[i].b = *palette++;
 	}
 
-	// SDL_SetColors(screen, colors, 0, 256); // SDL1 call, replaced
-
-	// Convert and store the palette in SdlPalette for ARGB8888 format
-	// temp_format = SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888); // Preferred way
-	// if (!temp_format) {
-    //    Sys_Error("VID_SetPalette: Couldn't allocate pixel format: %s\n", SDL_GetError());
-    // }
 	for (i = 0; i < 256; ++i) {
-		// SdlPalette[i] = SDL_MapRGB(temp_format, colors[i].r, colors[i].g, colors[i].b);
         // Simpler direct construction for ARGB8888 (0xAARRGGBB)
         SdlPalette[i] = ((Uint32)0xFF << 24) | // Alpha
                         ((Uint32)colors[i].r << 16) |
                         ((Uint32)colors[i].g << 8) |
                         ((Uint32)colors[i].b);
 	}
-	// if (temp_format) {
-    //    SDL_FreeFormat(temp_format);
-    // }
 }
 
 void    VID_ShiftPalette (unsigned char *palette)
@@ -81,23 +70,17 @@ void VID_LockBuffer (void)
 	if (lockcount > 1)
 		return;
 
-	// SDL_LockSurface(screen); // Removed
-
-	// Update surface pointer for linear access modes
-	// vid.buffer, etc., already point to frame_buffer (or should be after VID_Init)
-	// vid.direct is also frame_buffer
 	vid.buffer = vid.conbuffer = vid.direct = frame_buffer;
-	vid.rowbytes = vid.conrowbytes = vid.width; // Pitch of 8-bit frame_buffer
+	vid.rowbytes = vid.conrowbytes = vid.width;
 
 	if (r_dowarp)
-		d_viewbuffer = r_warpbuffer; // This needs to be an 8-bit buffer too
+		d_viewbuffer = r_warpbuffer;
 	else
-		d_viewbuffer = frame_buffer; // vid.buffer points to frame_buffer
-
+		d_viewbuffer = frame_buffer;
 	if (r_dowarp)
-		screenwidth = WARP_WIDTH; // This implies r_warpbuffer has WARP_WIDTH pitch
+		screenwidth = WARP_WIDTH;
 	else
-		screenwidth = vid.width; // Pitch of 8-bit frame_buffer
+		screenwidth = vid.width;
 }
 
 void VID_UnlockBuffer (void)
@@ -108,16 +91,9 @@ void VID_UnlockBuffer (void)
 		return;
 
 	if (lockcount < 0) {
-		// This case should ideally not happen if lock/unlock are balanced.
-		// Consider adding a Sys_Error or warning if it does.
 		lockcount = 0; // Reset to prevent further issues
 		return;
 	}
-
-	// SDL_UnlockSurface (screen); // Removed
-
-// to turn up any unlocked accesses
-	// vid.buffer = vid.conbuffer = vid.direct = d_viewbuffer = NULL; // This debugging line can remain commented
 }
 
 void    VID_Init (unsigned char *palette)
@@ -136,58 +112,29 @@ void    VID_Init (unsigned char *palette)
         Sys_Error("VID: Couldn't load SDL: %s", SDL_GetError());
 
     // Set up display mode (width and height)
-    vid.width = BASEWIDTH;
-    vid.height = BASEHEIGHT;
+    vid.width = screenWidth;
+    vid.height = screenHeight;
     vid.maxwarpwidth = WARP_WIDTH;
     vid.maxwarpheight = WARP_HEIGHT;
 
-    // check for command-line window size
-    if ((pnum=COM_CheckParm("-winsize")))
-    {
-        if (pnum >= com_argc-2)
-            Sys_Error("VID: -winsize <width> <height>\n");
-        vid.width = Q_atoi(com_argv[pnum+1]);
-        vid.height = Q_atoi(com_argv[pnum+2]);
-        if (!vid.width || !vid.height)
-            Sys_Error("VID: Bad window width/height\n");
-    }
-    if ((pnum=COM_CheckParm("-width"))) {
-        if (pnum >= com_argc-1)
-            Sys_Error("VID: -width <width>\n");
-        vid.width = Q_atoi(com_argv[pnum+1]);
-        if (!vid.width)
-            Sys_Error("VID: Bad window width\n");
-    }
-    if ((pnum=COM_CheckParm("-height"))) {
-        if (pnum >= com_argc-1)
-            Sys_Error("VID: -height <height>\n");
-        vid.height = Q_atoi(com_argv[pnum+1]);
-        if (!vid.height)
-            Sys_Error("VID: Bad window height\n");
-    }
-
-    // Set video width, height and determine window flags
-    // flags = (SDL_SWSURFACE|SDL_HWPALETTE|SDL_FULLSCREEN); // SDL1 flags
-    // SDL_HWPALETTE is not directly used with SDL2 renderers in this way.
-    // Palette management is manual for the texture.
-
-    if ( COM_CheckParm ("-fullscreen") ) {
-        // SDL2 uses SDL_WINDOW_FULLSCREEN_DESKTOP for borderless fullscreen
-        // or SDL_WINDOW_FULLSCREEN for "real" fullscreen mode change.
-        // Let's start with SDL_WINDOW_FULLSCREEN_DESKTOP for better compatibility.
+    if ( !COM_CheckParm ("-window") ) {
         window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
-    // No explicit else for windowed mode, as it's the default.
-    // The old "-window" flag would ensure SDL_FULLSCREEN is not set, which is implicitly handled.
     
-    if (vid.width > 1280 || vid.height > 1024) // This check can remain
-    {
-    	Sys_Error("Maximum Resolution is 1280 width and 1024 height");
-    }
+    SDL_DisplayMode DispMode;
+    SDL_GetCurrentDisplayMode(0, &DispMode);
+    
+#ifdef _WIN32
+	screenWidth = DispMode.h * 3.0 / 4.0;
+	screenHeight = DispMode.w * 3.0 / 4.0;
+#else
+	screenWidth = DispMode.w * 3.0 / 4.0;
+	screenHeight = DispMode.h * 3.0 / 4.0;
+#endif
 
-    window = SDL_CreateWindow("SDLWinQuake", // Title will be set later
+    window = SDL_CreateWindow("NakedWinQuake", // Title will be set later
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                              vid.width, vid.height, window_flags);
+                              screenWidth, screenHeight, window_flags);
     if (!window) {
         Sys_Error("VID: Couldn't create window: %s\n", SDL_GetError());
     }
@@ -222,7 +169,7 @@ void    VID_Init (unsigned char *palette)
         
     VID_SetPalette(palette); // This will now populate SdlPalette
     
-    sprintf(caption, "SDLWinQuake - Version %4.2f", VERSION);
+    sprintf(caption, "NakedWinQuake - Version %4.2f", VERSION);
     SDL_SetWindowTitle(window, caption);
     
     // Update vid structure members
@@ -233,9 +180,7 @@ void    VID_Init (unsigned char *palette)
     vid.colormap = host_colormap;
     vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
     
-    // Point vid.buffer and related pointers to the new frame_buffer
     VGA_pagebase = vid.buffer = vid.conbuffer = vid.direct = frame_buffer;
-    // rowbytes for the 8-bit frame_buffer is simply the width
     vid.rowbytes = vid.conrowbytes = vid.width; 
     
     // allocate z buffer and surface cache
@@ -261,10 +206,6 @@ void    VID_Shutdown (void)
 {
 	if (vid_initialized)
 	{
-		// if (screen != NULL && lockcount > 0) // screen is no longer used
-		//	SDL_UnlockSurface (screen); // screen is no longer used
-		// lockcount should be 0 if VID_LockBuffer/VID_UnlockBuffer are balanced
-
 		if (texture) {
             SDL_DestroyTexture(texture);
             texture = NULL;
@@ -289,9 +230,6 @@ void    VID_Shutdown (void)
 
 void    VID_Update (vrect_t *rects)
 {
-    // The rects argument is not used in this SDL2 implementation,
-    // as we update the entire texture and present it.
-    // Consider removing it from the function signature if it's confirmed to be unused elsewhere.
     (void)rects; // Mark as unused to prevent compiler warnings
 
     void *texture_pixels;
@@ -384,13 +322,7 @@ D_EndDirectRect
 */
 void D_EndDirectRect (int x, int y, int width, int height)
 {
-    // if (!screen) return; // screen is no longer used
-    // if (x < 0) x = screen->w+x-1; // screen is no longer used
-    // SDL_UpdateRect(screen, x, y, width, height); // Removed
-
-    // This function is now a no-op.
-    // The changes are made to frame_buffer, and VID_Update will handle presenting it.
-    (void)x; (void)y; (void)width; (void)height; // Mark as unused
+	(void)x; (void)y; (void)width; (void)height; // Mark as unused
 }
 
 
