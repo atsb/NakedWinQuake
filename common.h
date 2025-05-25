@@ -1,6 +1,5 @@
 /*
-Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
+Copyright (C) 1996-1997 Id Software, Inc.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -9,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 
 See the GNU General Public License for more details.
 
@@ -64,7 +63,7 @@ void InsertLinkAfter (link_t *l, link_t *after);
 // (type *)STRUCT_FROM_LINK(link_t *link, type, member)
 // ent = STRUCT_FROM_LINK(link,entity_t,order)
 // FIXME: remove this mess!
-#define	STRUCT_FROM_LINK(l,t,m) ((t *)((byte *)l - (size_t)&(((t *)0)->m)))
+#define	STRUCT_FROM_LINK(l,t,m) ((t *)((byte *)l - (int)&(((t *)0)->m)))
 
 //============================================================================
 
@@ -105,7 +104,6 @@ void MSG_WriteFloat (sizebuf_t *sb, float f);
 void MSG_WriteString (sizebuf_t *sb, char *s);
 void MSG_WriteCoord (sizebuf_t *sb, float f);
 void MSG_WriteAngle (sizebuf_t *sb, float f);
-void MSG_WriteAngle16 (sizebuf_t *sb, float f); //johnfitz
 
 extern	int			msg_readcount;
 extern	qboolean	msg_badread;		// set if a read goes beyond end of message
@@ -120,24 +118,23 @@ char *MSG_ReadString (void);
 
 float MSG_ReadCoord (void);
 float MSG_ReadAngle (void);
-float MSG_ReadAngle16 (void); //johnfitz
 
 //============================================================================
 
-void Q_memset (void *dest, int fill, size_t count);
-void Q_memcpy (void *dest, const void *src, size_t count);
-int Q_memcmp (const void *m1, const void *m2, size_t count);
-void Q_strcpy (char *dest, const char *src);
-void Q_strncpy (char *dest, const char *src, int count);
-int Q_strlen (const char *str);
-char *Q_strrchr (const char *s, char c);
-void Q_strcat (char *dest, const char *src);
-int Q_strcmp (const char *s1, const char *s2);
-int Q_strncmp (const char *s1, const char *s2, int count);
-int Q_strcasecmp (const char *s1, const char *s2);
-int Q_strncasecmp (const char *s1, const char *s2, int n);
-int	Q_atoi (const char *str);
-float Q_atof (const char *str);
+void Q_memset (void *dest, int fill, int count);
+void Q_memcpy (void *dest, void *src, int count);
+int Q_memcmp (void *m1, void *m2, int count);
+void Q_strcpy (char *dest, char *src);
+void Q_strncpy (char *dest, char *src, int count);
+int Q_strlen (char *str);
+char *Q_strrchr (char *s, char c);
+void Q_strcat (char *dest, char *src);
+int Q_strcmp (char *s1, char *s2);
+int Q_strncmp (char *s1, char *s2, int count);
+int Q_strcasecmp (char *s1, char *s2);
+int Q_strncasecmp (char *s1, char *s2, int n);
+int	Q_atoi (char *str);
+float Q_atof (char *str);
 
 //============================================================================
 
@@ -158,7 +155,6 @@ char *COM_SkipPath (char *pathname);
 void COM_StripExtension (char *in, char *out);
 void COM_FileBase (char *in, char *out);
 void COM_DefaultExtension (char *path, char *extension);
-void COM_CreatePath (char *path);
 
 char	*va(char *format, ...);
 // does a varargs printf into a temp buffer
