@@ -18,9 +18,9 @@ byte* VGA_pagebase;
 
 static int	lockcount;
 static qboolean	vid_initialized = false;
-static SDL_Window* window;
-static SDL_Renderer* renderer;
-static SDL_Texture* texture;
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+static SDL_Texture* texture = NULL;
 static Uint32 SdlPalette[256]; // For storing the palette in texture format
 static byte* frame_buffer;    // 8-bit indexed pixel data buffer
 static qboolean	palette_changed;
@@ -65,35 +65,12 @@ void    VID_ShiftPalette(unsigned char* palette)
 
 void VID_LockBuffer(void)
 {
-    lockcount++;
 
-    if (lockcount > 1)
-        return;
-
-    vid.buffer = vid.conbuffer = vid.direct = frame_buffer;
-    vid.rowbytes = vid.conrowbytes = vid.width;
-
-    if (r_dowarp)
-        d_viewbuffer = r_warpbuffer;
-    else
-        d_viewbuffer = frame_buffer;
-    if (r_dowarp)
-        screenwidth = WARP_WIDTH;
-    else
-        screenwidth = vid.width;
 }
 
 void VID_UnlockBuffer(void)
 {
-    lockcount--;
 
-    if (lockcount > 0)
-        return;
-
-    if (lockcount < 0) {
-        lockcount = 0; // Reset to prevent further issues
-        return;
-    }
 }
 
 void    VID_Init(unsigned char* palette)
@@ -234,14 +211,7 @@ void    VID_Update(vrect_t* rects)
 
     if (!vid_initialized || !renderer || !texture) return;
 
-    // Determine the source buffer for pixel data
-    if (r_dowarp && d_viewbuffer == r_warpbuffer) { // Check if warp is active AND d_viewbuffer is set to warp
-        source_buffer = r_warpbuffer; // Use the warp buffer
-        // Ensure r_warpbuffer is treated as 8-bit indexed
-    }
-    else {
-        source_buffer = frame_buffer; // Default to the main 8-bit frame_buffer
-    }
+    source_buffer = frame_buffer;
 
     // Ensure source_buffer is valid
     if (!source_buffer) {
