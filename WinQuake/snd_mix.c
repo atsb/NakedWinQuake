@@ -78,10 +78,8 @@ void S_TransferStereo16 (int endtime)
 
 	snd_p = (int *) paintbuffer;
 	lpaintedtime = paintedtime;
-
-	{
-		pbuf = (DWORD *)shm->buffer;
-	}
+	
+	pbuf = (DWORD *)shm->buffer;
 
 	while (lpaintedtime < endtime)
 	{
@@ -133,10 +131,8 @@ void S_TransferPaintBuffer(int endtime)
 	out_idx = paintedtime * shm->channels & out_mask;
 	step = 3 - shm->channels;
 	snd_vol = volume.value*256;
-
-	{
-		pbuf = (DWORD *)shm->buffer;
-	}
+	
+	pbuf = (DWORD *)shm->buffer;
 
 	if (shm->samplebits == 16)
 	{

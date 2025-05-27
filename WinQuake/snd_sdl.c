@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "SDL_audio.h"
+#include "SDL.h"
 #include "quakedef.h"
 
 static dma_t the_shm;
@@ -48,7 +48,6 @@ qboolean SNDDMA_Init(void)
 	desired.callback = paint_audio;
 
 	/* Open the audio device */
-	// if ( SDL_OpenAudio(&desired, &obtained) < 0 ) { // SDL1
 	audio_dev_id = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, SDL_AUDIO_ALLOW_ANY_CHANGE);
 	if (audio_dev_id == 0) {
 		Con_Printf("Couldn't open SDL audio: %s\n", SDL_GetError());
@@ -71,30 +70,18 @@ qboolean SNDDMA_Init(void)
 		}
 		/* Unsupported, fall through */;
 	default:
-		/* Not supported -- force SDL to do our bidding */
-		// SDL_CloseAudio(); // SDL1
-		// if ( SDL_OpenAudio(&desired, NULL) < 0 ) { // SDL1
-		//		Con_Printf("Couldn't open SDL audio: %s\n",
-		//				SDL_GetError());
-		//	return 0;
-		// }
-		// memcpy(&obtained, &desired, sizeof(desired)); // SDL1
 		Con_Printf("SDL Audio: Desired format not directly supported. Will try to force.\n");
-		SDL_CloseAudioDevice(audio_dev_id); // Close the first attempt
-		// For the second attempt, pass desired as the spec we want, and allow no changes.
-		// We still need an 'obtained_fallback' struct for the call.
+		SDL_CloseAudioDevice(audio_dev_id);
 		SDL_AudioSpec obtained_fallback;
-		audio_dev_id = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained_fallback, 0); // 0 for no allowed changes
+		audio_dev_id = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained_fallback, 0);
 		if (audio_dev_id == 0) {
 			Con_Printf("Couldn't open SDL audio with forced desired format: %s\n", SDL_GetError());
 			return 0;
 		}
-		// If this succeeds, obtained_fallback should match desired. We'll use 'desired' for setting up shm.
-		memcpy(&obtained, &desired, sizeof(desired)); // Keep consistency with how 'obtained' is used later.
+		memcpy(&obtained, &desired, sizeof(desired));
 		break;
 	}
-	// SDL_PauseAudio(0); // SDL1
-	SDL_PauseAudioDevice(audio_dev_id, 0); // 0 means unpause
+	SDL_PauseAudioDevice(audio_dev_id, 0);
 
 	/* Fill the audio DMA information block */
 	shm = &the_shm;
@@ -129,3 +116,7 @@ void SNDDMA_Shutdown(void)
 	}
 }
 
+void SNDDMA_Submit(void)
+{
+	// stubbed
+}

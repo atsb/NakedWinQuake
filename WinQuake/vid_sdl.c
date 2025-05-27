@@ -142,7 +142,7 @@ void    VID_Init(unsigned char* palette)
 
     VID_SetPalette(palette); // This will now populate SdlPalette
 
-    sprintf(caption, "NakedWinQuake - Version %4.2f", VERSION);
+    sprintf(caption, "NakedWinQuake - Version %4.2f", (float)VERSION);
     SDL_SetWindowTitle(window, caption);
 
     // Update vid structure members
