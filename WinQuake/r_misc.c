@@ -80,11 +80,7 @@ void R_TimeRefresh_f (void)
 	{
 		r_refdef.viewangles[1] = i/128.0*360.0;
 
-		VID_LockBuffer ();
-
 		R_RenderView ();
-
-		VID_UnlockBuffer ();
 
 		vr.x = r_refdef.vrect.x;
 		vr.y = r_refdef.vrect.y;

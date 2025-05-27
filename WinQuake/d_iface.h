@@ -144,7 +144,6 @@ extern vec3_t	r_pright, r_pup, r_ppn;
 
 void D_Aff8Patch (void *pcolormap);
 void D_BeginDirectRect (int x, int y, byte *pbitmap, int width, int height);
-void D_DisableBackBufferAccess (void);
 void D_EndDirectRect (int x, int y, int width, int height);
 void D_PolysetDraw (void);
 void D_PolysetDrawFinalVerts (finalvert_t *fv, int numverts);
@@ -153,7 +152,6 @@ void D_DrawPoly (void);
 void D_DrawSprite (void);
 void D_DrawSurfaces (void);
 void D_DrawZPoint (void);
-void D_EnableBackBufferAccess (void);
 void D_EndParticles (void);
 void D_Init (void);
 void D_ViewChanged (void);

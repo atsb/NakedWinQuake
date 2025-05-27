@@ -846,9 +846,7 @@ void Draw_FadeScreen (void)
 	int			x,y;
 	byte		*pbuf;
 
-	VID_UnlockBuffer ();
 	S_ExtraUpdate ();
-	VID_LockBuffer ();
 
 	for (y=0 ; y<vid.height ; y++)
 	{
@@ -864,9 +862,7 @@ void Draw_FadeScreen (void)
 		}
 	}
 
-	VID_UnlockBuffer ();
 	S_ExtraUpdate ();
-	VID_LockBuffer ();
 }
 
 //=============================================================================

@@ -51,13 +51,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define __i386__	1
 #endif
 
-void	VID_LockBuffer (void);
-void	VID_UnlockBuffer (void);
-
 #else
-
-#define	VID_LockBuffer()
-#define	VID_UnlockBuffer()
 
 #endif
 
