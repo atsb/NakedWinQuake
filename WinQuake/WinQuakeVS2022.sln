@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35208.52
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinQuakeVS2022", "WinQuakeVS2022.vcxproj", "{52991D23-1171-4DB4-A185-D57D195955CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		GL Debug|x64 = GL Debug|x64
+		GL Debug|x86 = GL Debug|x86
+		GL Release|x64 = GL Release|x64
+		GL Release|x86 = GL Release|x86
+		Software Debug|x64 = Software Debug|x64
+		Software Debug|x86 = Software Debug|x86
+		Software Release|x64 = Software Release|x64
+		Software Release|x86 = Software Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52991D23-1171-4DB4-A185-D57D195955CE}.GL Debug|x64.ActiveCfg = GL Debug|x64
+		{52991D23-1171-4DB4-A185-D57D195955CE}.GL Debug|x64.Build.0 = GL Debug|x64
+		{52991D23-1171-4DB4-A185-D57D195955CE}.GL Debug|x86.ActiveCfg = GL Debug|Win32
+		{52991D23-1171-4DB4-A185-D57D195955CE}.GL Debug|x86.Build.0 = GL Debug|Win32
+		{52991D23-1171-4DB4-A185-D57D195955CE}.GL Release|x64.ActiveCfg = GL Release|x64
+		{52991D23-1171-4DB4-A185-D57D195955CE}.GL Release|x64.Build.0 = GL Release|x64
+		{52991D23-1171-4DB4-A185-D57D195955CE}.GL Release|x86.ActiveCfg = GL Release|Win32
+		{52991D23-1171-4DB4-A185-D57D195955CE}.GL Release|x86.Build.0 = GL Release|Win32
+		{52991D23-1171-4DB4-A185-D57D195955CE}.Software Debug|x64.ActiveCfg = Software Debug|x64
+		{52991D23-1171-4DB4-A185-D57D195955CE}.Software Debug|x64.Build.0 = Software Debug|x64
+		{52991D23-1171-4DB4-A185-D57D195955CE}.Software Debug|x86.ActiveCfg = Software Debug|Win32
+		{52991D23-1171-4DB4-A185-D57D195955CE}.Software Debug|x86.Build.0 = Software Debug|Win32
+		{52991D23-1171-4DB4-A185-D57D195955CE}.Software Release|x64.ActiveCfg = Software Release|x64
+		{52991D23-1171-4DB4-A185-D57D195955CE}.Software Release|x64.Build.0 = Software Release|x64
+		{52991D23-1171-4DB4-A185-D57D195955CE}.Software Release|x86.ActiveCfg = Software Release|Win32
+		{52991D23-1171-4DB4-A185-D57D195955CE}.Software Release|x86.Build.0 = Software Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8E2B91B2-5891-49AD-BB8F-DCE9F0F86DC7}
+	EndGlobalSection
+EndGlobal
