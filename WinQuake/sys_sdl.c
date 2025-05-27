@@ -1,6 +1,7 @@
 /* -*- Mode: C; tab-width: 4 -*- */
 
-#include "SDL.h"
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
 
 #ifndef _WIN32
 #include <unistd.h>

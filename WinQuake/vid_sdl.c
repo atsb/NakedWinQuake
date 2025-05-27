@@ -1,6 +1,6 @@
 // vid_sdl.h -- sdl video driver 
 
-#include "SDL.h"
+#include <SDL2/SDL.h>
 #include "quakedef.h"
 #include "d_local.h"
 

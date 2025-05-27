@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "SDL.h"
+#include <SDL2/SDL.h>
 #include "quakedef.h"
 
 static dma_t the_shm;
