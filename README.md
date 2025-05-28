@@ -1,4 +1,4 @@
-# --------------------- NAKED WINQUAKE ---------------------
+# -------------------- NAKED WINQUAKE --------------------
 
 ## GET READY TO PARTY LIKE IT'S 1996!
 
