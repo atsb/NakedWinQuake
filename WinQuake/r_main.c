@@ -873,71 +873,54 @@ void R_DrawBEntitiesOnList (void)
 R_EdgeDrawing
 ================
 */
-void R_EdgeDrawing (void)
+void R_EdgeDrawing(void)
 {
-	edge_t	ledges[NUMSTACKEDGES +
-				((CACHE_SIZE - 1) / sizeof(edge_t)) + 1];
-	surf_t	lsurfs[NUMSTACKSURFACES +
-				((CACHE_SIZE - 1) / sizeof(surf_t)) + 1];
+	edge_t	ledges[NUMSTACKEDGES + ((CACHE_SIZE - 1) / sizeof(edge_t)) + 1];
+	surf_t	lsurfs[NUMSTACKSURFACES + ((CACHE_SIZE - 1) / sizeof(surf_t)) + 1];
 
-	if (auxedges)
-	{
-		r_edges = auxedges;
-	}
-	else
-	{
-		r_edges =  (edge_t *)
-				(((long)&ledges[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
-	}
+	r_edges = (auxedges) ? auxedges : (edge_t*)(((uintptr_t)&ledges[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 
 	if (r_surfsonstack)
 	{
-		surfaces =  (surf_t *)
-				(((long)&lsurfs[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
+		surfaces = (surf_t*)(((uintptr_t)&lsurfs[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 		surf_max = &surfaces[r_cnumsurfs];
-	// surface 0 doesn't really exist; it's just a dummy because index 0
-	// is used to indicate no edge attached to surface
+		// surface 0 doesn't really exist; it's just a dummy because index 0
+		// is used to indicate no edge attached to surface
 		surfaces--;
-		R_SurfacePatch ();
+#if id386
+		R_SurfacePatch();
+#endif // id386
 	}
 
-	R_BeginEdgeFrame ();
+	R_BeginEdgeFrame();
 
 	if (r_dspeeds.value)
 	{
-		rw_time1 = Sys_FloatTime ();
+		rw_time1 = Sys_FloatTime();
 	}
 
-	R_RenderWorld ();
-
-	if (r_drawculledpolys)
-		R_ScanEdges ();
-
-// only the world can be drawn back to front with no z reads or compares, just
-// z writes, so have the driver turn z compares on now
-	D_TurnZOn ();
+	R_RenderWorld();
 
 	if (r_dspeeds.value)
 	{
-		rw_time2 = Sys_FloatTime ();
+		rw_time2 = Sys_FloatTime();
 		db_time1 = rw_time2;
 	}
 
-	R_DrawBEntitiesOnList ();
+	R_DrawBEntitiesOnList();
 
 	if (r_dspeeds.value)
 	{
-		db_time2 = Sys_FloatTime ();
+		db_time2 = Sys_FloatTime();
 		se_time1 = db_time2;
 	}
 
 	if (!r_dspeeds.value)
 	{
-		S_ExtraUpdate ();	// don't let sound get messed up if going slow
+		S_ExtraUpdate();	// don't let sound get messed up if going slow
 	}
-	
-	if (!(r_drawpolys | r_drawculledpolys))
-		R_ScanEdges ();
+
+	R_ScanEdges();
 }
 
 
@@ -1052,10 +1035,10 @@ void R_RenderView (void)
 	if ( Hunk_LowMark() & 3 )
 		Sys_Error ("Hunk is missaligned");
 
-	if ( (long)(&dummy) & 3 )
+	if ( (uintptr_t)(&dummy) & 3 )
 		Sys_Error ("Stack is missaligned");
 
-	if ( (long)(&r_warpbuffer) & 3 )
+	if ( (uintptr_t)(&r_warpbuffer) & 3 )
 		Sys_Error ("Globals are missaligned");
 
 	R_RenderView_ ();

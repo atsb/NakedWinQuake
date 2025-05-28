@@ -672,13 +672,16 @@ while (1)
 char* pr_strtbl[MAX_PRSTR];
 int num_prstr;
 
-char* PR_GetString(int num)
+const char* PR_GetString(int num)
 {
-	if (num < 0) {
-		//Con_DPrintf("GET:%d == %s\n", num, pr_strtbl[-num]);
-		return pr_strtbl[-num];
-	}
-	return pr_strings + num;
+	const char* s = "";
+
+	if (num >= 0 && num < pr_strings - 1)
+		s = pr_strings + num;
+	else if (num < 0 && num >= -num_prstr)
+		s = pr_strtbl[-num - 1];
+
+	return s;
 }
 
 int PR_SetString(char* s)

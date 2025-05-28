@@ -240,13 +240,13 @@ extern hostcache_t hostcache[HOSTCACHESIZE];
 
 #if !defined(_WIN32 ) && !defined (__linux__) && !defined (__sun__)
 #ifndef htonl
-extern unsigned long htonl (unsigned long hostlong);
+extern uintptr_t htonl (uintptr_t hostlong);
 #endif
 #ifndef htons
 extern unsigned short htons (unsigned short hostshort);
 #endif
 #ifndef ntohl
-extern unsigned long ntohl (unsigned long netlong);
+extern uintptr_t ntohl (uintptr_t netlong);
 #endif
 #ifndef ntohs
 extern unsigned short ntohs (unsigned short netshort);

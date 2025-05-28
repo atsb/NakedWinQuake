@@ -92,8 +92,14 @@ void    VID_Init(unsigned char* palette)
     SDL_GetCurrentDisplayMode(0, &DispMode);
 
 #ifdef _WIN32
-    screenWidth = DispMode.h * 3.0 / 4.0;
-    screenHeight = DispMode.w * 3.0 / 4.0;
+    if (COM_CheckParm("-window")) {
+        screenWidth = DispMode.w * 3.0 / 4.0;
+        screenHeight = DispMode.h * 3.0 / 4.0;
+    }
+    else {
+        screenWidth = DispMode.h * 3.0 / 4.0;
+        screenHeight = DispMode.w * 3.0 / 4.0;
+    }
 #else
     screenWidth = DispMode.w * 3.0 / 4.0;
     screenHeight = DispMode.h * 3.0 / 4.0;

@@ -122,12 +122,7 @@ ErrorReturn:
 
 int WIPX_CloseSocket(int handle)
 {
-	int socket = ipxsocket[handle];
-	int ret;
-
-	ret = pclosesocket(socket);
-	ipxsocket[handle] = 0;
-	return ret;
+	return 0;
 }
 
 
@@ -142,7 +137,7 @@ int WIPX_Connect(int handle, struct qsockaddr* addr)
 
 int WIPX_CheckNewConnections(void)
 {
-	unsigned long	available;
+	uintptr_t	available;
 
 	if (net_acceptsocket == -1)
 		return -1;

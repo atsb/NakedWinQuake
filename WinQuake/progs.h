@@ -142,5 +142,5 @@ eval_t* GetEdictFieldValue(edict_t* ed, char* field);
 extern char* pr_strtbl[MAX_PRSTR];
 extern int num_prstr;
 
-char* PR_GetString(int num);
+const char* PR_GetString(int num);
 int PR_SetString(char* s);
