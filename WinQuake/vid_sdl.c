@@ -29,6 +29,9 @@ static qboolean mouse_avail;
 static float   mouse_x, mouse_y;
 static int mouse_oldbuttonstate = 0;
 
+float accumulated_mouse_dx = 0.0f;
+float accumulated_mouse_dy = 0.0f;
+
 // No support for option menus
 void (*vid_menudrawfn)(void) = NULL;
 void (*vid_menukeyfn)(int key) = NULL;
@@ -399,19 +402,8 @@ void Sys_SendKeyEvents(void)
             break;
 
         case SDL_MOUSEMOTION:
-            if ((event.motion.x != (vid.width / 2)) ||
-                (event.motion.y != (vid.height / 2))) {
-                mouse_x = event.motion.xrel * 10;
-                mouse_y = event.motion.yrel * 10;
-                if ((event.motion.x < ((vid.width / 2) - (vid.width / 4))) ||
-                    (event.motion.x > ((vid.width / 2) + (vid.width / 4))) ||
-                    (event.motion.y < ((vid.height / 2) - (vid.height / 4))) ||
-                    (event.motion.y > ((vid.height / 2) + (vid.height / 4)))) {
-                    if (window) { // Ensure window is valid before warping
-                        SDL_WarpMouseInWindow(window, vid.width / 2, vid.height / 2);
-                    }
-                }
-            }
+            accumulated_mouse_dx += event.motion.xrel;
+            accumulated_mouse_dy += event.motion.yrel;
             break;
 
         case SDL_WINDOWEVENT: // Handle window events, especially close
@@ -435,35 +427,59 @@ void Sys_SendKeyEvents(void)
 
 void IN_Init(void)
 {
-    if (COM_CheckParm("-nomouse"))
+    if (COM_CheckParm("-nomouse")) {
+        mouse_avail = 0; // Ensure mouse_avail is set if -nomouse
         return;
-    mouse_x = mouse_y = 0.0;
+    }
+
+    if (SDL_SetRelativeMouseMode(SDL_TRUE) != 0) {
+        Sys_Printf("Warning: Could not enable SDL_SetRelativeMouseMode: %s\n", SDL_GetError());
+    }
+
+    mouse_x = 0.0;
+    mouse_y = 0.0;
+    accumulated_mouse_dx = 0.0f;
+    accumulated_mouse_dy = 0.0f;
+    mouse_oldbuttonstate = 0;
     mouse_avail = 1;
 }
 
 void IN_Shutdown(void)
 {
+    if (mouse_avail)
+    {
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+    }
     mouse_avail = 0;
 }
 
 void IN_Commands(void)
 {
     int i;
-    int mouse_buttonstate;
+    int current_mouse_buttonstate_sdl;
+    int ingame_mouse_buttonstate;
 
     if (!mouse_avail) return;
 
-    i = SDL_GetMouseState(NULL, NULL);
-    /* Quake swaps the second and third buttons */
-    mouse_buttonstate = (i & ~0x06) | ((i & 0x02) << 1) | ((i & 0x04) >> 1);
+    current_mouse_buttonstate_sdl = SDL_GetMouseState(NULL, NULL);
+
+    ingame_mouse_buttonstate = 0;
+    if (current_mouse_buttonstate_sdl & SDL_BUTTON(SDL_BUTTON_LEFT))
+        ingame_mouse_buttonstate |= (1 << 0);
+    if (current_mouse_buttonstate_sdl & SDL_BUTTON(SDL_BUTTON_RIGHT))
+        ingame_mouse_buttonstate |= (1 << 1);
+    if (current_mouse_buttonstate_sdl & SDL_BUTTON(SDL_BUTTON_MIDDLE))
+        ingame_mouse_buttonstate |= (1 << 2);
+
+
     for (i = 0; i < 3; i++) {
-        if ((mouse_buttonstate & (1 << i)) && !(mouse_oldbuttonstate & (1 << i)))
+        if ((ingame_mouse_buttonstate & (1 << i)) && !(mouse_oldbuttonstate & (1 << i)))
             Key_Event(K_MOUSE1 + i, true);
 
-        if (!(mouse_buttonstate & (1 << i)) && (mouse_oldbuttonstate & (1 << i)))
+        if (!(ingame_mouse_buttonstate & (1 << i)) && (mouse_oldbuttonstate & (1 << i)))
             Key_Event(K_MOUSE1 + i, false);
     }
-    mouse_oldbuttonstate = mouse_buttonstate;
+    mouse_oldbuttonstate = ingame_mouse_buttonstate;
 }
 
 void IN_Move(usercmd_t* cmd)
@@ -471,30 +487,42 @@ void IN_Move(usercmd_t* cmd)
     if (!mouse_avail)
         return;
 
+    mouse_x = accumulated_mouse_dx;
+    mouse_y = accumulated_mouse_dy;
+
+    accumulated_mouse_dx = 0.0f;
+    accumulated_mouse_dy = 0.0f;
+
     mouse_x *= sensitivity.value;
     mouse_y *= sensitivity.value;
 
-    if ((in_strafe.state & 1) || (lookstrafe.value && (in_mlook.state & 1)))
+    if ((in_strafe.state & 1) || (lookstrafe.value && (in_mlook.state & 1))) {
         cmd->sidemove += m_side.value * mouse_x;
-    else
+    }
+    else {
         cl.viewangles[YAW] -= m_yaw.value * mouse_x;
-    if (in_mlook.state & 1)
+    }
+
+    if (in_mlook.state & 1) {
         V_StopPitchDrift();
+    }
 
     if ((in_mlook.state & 1) && !(in_strafe.state & 1)) {
         cl.viewangles[PITCH] += m_pitch.value * mouse_y;
+        // Clamp pitch
         if (cl.viewangles[PITCH] > 80)
             cl.viewangles[PITCH] = 80;
         if (cl.viewangles[PITCH] < -70)
             cl.viewangles[PITCH] = -70;
     }
     else {
-        if ((in_strafe.state & 1) && noclip_anglehack)
+        if ((in_strafe.state & 1) && noclip_anglehack) {
             cmd->upmove -= m_forward.value * mouse_y;
-        else
+        }
+        else {
             cmd->forwardmove -= m_forward.value * mouse_y;
+        }
     }
-    mouse_x = mouse_y = 0.0;
 }
 
 /*
