@@ -10,7 +10,7 @@ This ain't your grandma's Quake. This ain't even your older, slightly-less-cool 
 
 ![Behold! The chunky glory of NakedWinQuake!](screenshots/screenshot_1.png)
 
-Forget your "ChadQuake" with its... *shudder*... *polygons*. Pfft. We're talking about a level of **MEGA-CHAD** here that makes those other ports look like they're still asking their mommies to cut the crusts off their sandwiches. This is **THE WAY IT WAS MEANT TO BE PLAYED!** Each pixel is a lovingly handcrafted testament to the days when men were men, women were men, and gibs were chunky enough to trip over!
+Forget your "ChadQuake" with its... *shudder*... *polygons*. Pfft. We're talking about a level of **MEGA-CHAD** here that makes those other ports look like they're still asking their mommies to cut the crusts off their sandwiches. This is **THE WAY IT WAS MEANT TO BE PLAYED!** Each pixel is a lovingly handcrafted testament to the days when gibs were chunky enough to trip over!
 
 ---
 
