@@ -8,9 +8,11 @@ Whasssssuuuup, true fraggers and denizens of the deep, dark, PIXELATED netherwor
 
 This ain't your grandma's Quake. This ain't even your older, slightly-less-cool brother's Quake. This is **NAKED WINQUAKE** – Quake stripped bare, raw, and pulsating with the pure, unadulterated POWER of software rendering! We're talking **320x200 pixels of raw, unfiltered FURY**, baby! That's right, the resolution so chunky, so undeniably RIGHTEOUS, it'll make your eyeballs SWEAT WITH JOY!
 
-![Behold! The chunky glory of NakedWinQuake!](screenshots/screenshot_1.png)
+![Behold! The chunky glory of NakedWinQuake!](screenshots/quake00.png)
 
 Forget your "ChadQuake" with its... *shudder*... *polygons*. Pfft. We're talking about a level of **MEGA-CHAD** here that makes those other ports look like they're still asking their mommies to cut the crusts off their sandwiches. This is **THE WAY IT WAS MEANT TO BE PLAYED!** Each pixel is a lovingly handcrafted testament to the days when gibs were chunky enough to trip over!
+
+![Talk about CHUNKY GIBS!!](screenshots/quake02.png)
 
 ---
 
@@ -39,7 +41,3 @@ Let's be clear, this ain't "Quake for the masses." This ain't for the Twitchy, T
 If you're ready to experience Quake in its most primal, most righteous, most **NAKED** form, then hit that download button, crank up the Nine Inch Nails, and prepare for a trip back to a time when games were HARD, pixels were FAT, and fun was GUARANTEED.
 
 **NOW GO FRAG SOMETHING, YOU MAGNIFICENT B*S%ARD!**
-
----
-
-**(P.S. If you don't get it, you're probably too young. Or a console peasant. Or both. No hard feelings... much.)**
