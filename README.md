@@ -16,7 +16,7 @@ Forget your "ChadQuake" with its... *shudder*... *polygons*. Pfft. We're talking
 
 ### 🤯 SO AUTHENTIC, YOU'LL FORGET HOW TO USE A MOUSE WITH MORE THAN TWO BUTTONS! 🤯
 
-That's right, cyber-dudes and dudettes! **NAKED WINQUAKE** is so mind-bendingly ORIGINAL, it'll practically devolve you back into a **TROGLODYTE!** You'll be grunting at your monitor, smearing ochre paint on your face, and instinctively knowing how to strafe-jump before you even knew what a "strafe" was!
+That's right, cyber-dudes and dudettes! **NAKED WINQUAKE** is so mind-bendingly ORIGINAL, it'll practically devolve you back into a **TROGLODYTE!** You'll be grunting at your monitor, smearing ogre paint on your face, and instinctively knowing how to strafe-jump before you even knew what a "strafe" was!
 
 We've taken the sacred WinQuake source code – the holy grail! – and made only the most **MINIMAL, BARELY-THERE TWEAKS** to drag its glorious derrière into the 64-bit era. Think of it like taking a perfectly preserved T-Rex and just, like, giving it a slightly bigger cave so it doesn't bump its head.
 
