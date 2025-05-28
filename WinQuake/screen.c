@@ -19,8 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // screen.c -- master for refresh, status bar, console, chat, notify, etc
 
+#include <SDL2/SDL.h>
 #include "quakedef.h"
 #include "r_local.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 // only the refresh window will be updated unless these variables are flagged 
 int			scr_copytop;
@@ -519,131 +523,118 @@ void SCR_DrawConsole (void)
 						SCREEN SHOTS 
  
 ============================================================================== 
-*/ 
- 
-
-typedef struct
-{
-    char	manufacturer;
-    char	version;
-    char	encoding;
-    char	bits_per_pixel;
-    unsigned short	xmin,ymin,xmax,ymax;
-    unsigned short	hres,vres;
-    unsigned char	palette[48];
-    char	reserved;
-    char	color_planes;
-    unsigned short	bytes_per_line;
-    unsigned short	palette_type;
-    char	filler[58];
-    unsigned char	data;			// unbounded
-} pcx_t;
+*/
 
 /* 
 ============== 
 WritePCXfile 
 ============== 
 */ 
-void WritePCXfile (char *filename, byte *data, int width, int height,
-	int rowbytes, byte *palette) 
-{
-	int		i, j, length;
-	pcx_t	*pcx;
-	byte		*pack;
-	  
-	pcx = Hunk_TempAlloc (width*height*2+1000);
-	if (pcx == NULL)
-	{
-		Con_Printf("SCR_ScreenShot_f: not enough memory\n");
-		return;
-	} 
- 
-	pcx->manufacturer = 0x0a;	// PCX id
-	pcx->version = 5;			// 256 color
- 	pcx->encoding = 1;		// uncompressed
-	pcx->bits_per_pixel = 8;		// 256 color
-	pcx->xmin = 0;
-	pcx->ymin = 0;
-	pcx->xmax = LittleShort((short)(width-1));
-	pcx->ymax = LittleShort((short)(height-1));
-	pcx->hres = LittleShort((short)width);
-	pcx->vres = LittleShort((short)height);
-	Q_memset (pcx->palette,0,sizeof(pcx->palette));
-	pcx->color_planes = 1;		// chunky image
-	pcx->bytes_per_line = LittleShort((short)width);
-	pcx->palette_type = LittleShort(2);		// not a grey scale
-	Q_memset (pcx->filler,0,sizeof(pcx->filler));
-
-// pack the image
-	pack = &pcx->data;
-	
-	for (i=0 ; i<height ; i++)
-	{
-		for (j=0 ; j<width ; j++)
-		{
-			if ( (*data & 0xc0) != 0xc0)
-				*pack++ = *data++;
-			else
-			{
-				*pack++ = 0xc1;
-				*pack++ = *data++;
-			}
-		}
-
-		data += rowbytes - width;
+unsigned char* convert_indexed_to_rgb(const unsigned char* indexed_data, int width, int height, int rowbytes, const unsigned char* palette) {
+	unsigned char* rgb_data = (unsigned char*)malloc(width * height * 3);
+	if (!rgb_data) {
+		return NULL;
 	}
-			
-// write the palette
-	*pack++ = 0x0c;	// palette ID byte
-	for (i=0 ; i<768 ; i++)
-		*pack++ = *palette++;
-		
-// write output file 
-	length = pack - (byte *)pcx;
-	COM_WriteFile (filename, pcx, length);
-} 
- 
 
+	unsigned char* dst = rgb_data;
+	for (int y = 0; y < height; y++) {
+		const unsigned char* src_row = indexed_data + y * rowbytes;
+		for (int x = 0; x < width; x++) {
+			unsigned char index = src_row[x];
+			*dst++ = palette[index * 3 + 0]; // R
+			*dst++ = palette[index * 3 + 1]; // G
+			*dst++ = palette[index * 3 + 2]; // B
+		}
+	}
+	return rgb_data;
+}
+
+static void WritePNGfile(char* filename, SDL_Surface* surface_to_save) {
+	int num_components;
+	if (surface_to_save->format->BytesPerPixel == 4) {
+		num_components = 4;
+	}
+	else if (surface_to_save->format->BytesPerPixel == 3) {
+		num_components = 3;
+	}
+	else {
+		Con_Printf("WritePNGfile: Unsupported pixel format (BytesPerPixel = %d)\n", surface_to_save->format->BytesPerPixel);
+		return;
+	}
+
+	int success = stbi_write_png(filename,
+		surface_to_save->w,
+		surface_to_save->h,
+		num_components,
+		surface_to_save->pixels,
+		surface_to_save->pitch); // Use the surface's pitch
+
+	if (!success) {
+		Con_Printf("WritePNGfile_Scaled: failed to write %s\n", filename);
+	}
+
+}
 
 /* 
 ================== 
 SCR_ScreenShot_f
 ================== 
 */  
-void SCR_ScreenShot_f (void) 
-{ 
-	int     i; 
-	char		pcxname[80]; 
-	char		checkname[MAX_OSPATH];
+void SCR_ScreenShot_f(void)
+{
+	int     i;
+	char    imgname[80];
+	char    checkname[MAX_OSPATH];
+	const char* extension = ".png";
+	const char* base_name = "quake";
 
-// 
-// find a file name to save it to 
-// 
-	strcpy(pcxname,"quake00.pcx");
-		
-	for (i=0 ; i<=99 ; i++) 
-	{ 
-		pcxname[5] = i/10 + '0'; 
-		pcxname[6] = i%10 + '0'; 
-		sprintf (checkname, "%s/%s", com_gamedir, pcxname);
-		if (Sys_FileTime(checkname) == -1)
-			break;	// file doesn't exist
-	} 
-	if (i==100) 
-	{
-		Con_Printf ("SCR_ScreenShot_f: Couldn't create a PCX file\n"); 
+	extern SDL_Renderer* renderer;
+
+	if (!renderer) {
+		Con_Printf("SCR_ScreenShot_f: SDL_Renderer not available.\n");
 		return;
- 	}
+	}
 
-// 
-// save the pcx file 
-// 
+	// Find a file name
+	for (i = 0; i <= 99; i++) {
+		sprintf(imgname, "%s%02d%s", base_name, i, extension);
+		sprintf(checkname, "%s/%s", com_gamedir, imgname);
+		if (Sys_FileTime(checkname) == -1)
+			break;
+	}
+	if (i == 100) {
+		Con_Printf("SCR_ScreenShot_f: Couldn't create an image file (all names 00-99 taken)\n");
+		return;
+	}
 
-	WritePCXfile (pcxname, vid.buffer, vid.width, vid.height, vid.rowbytes,
-				  host_basepal);
+	int scaled_width, scaled_height;
+	SDL_GetRendererOutputSize(renderer, &scaled_width, &scaled_height);
+	if (scaled_width == 0 || scaled_height == 0) {
+		Con_Printf("SCR_ScreenShot_f: Invalid renderer output size (%dx%d).\n", scaled_width, scaled_height);
+		return;
+	}
 
-	Con_Printf ("Wrote %s\n", pcxname);
-} 
+	Uint32 target_sdl_format = SDL_PIXELFORMAT_RGBA32;
+	int expected_bpp = SDL_BYTESPERPIXEL(target_sdl_format);
+
+	SDL_Surface* ss_surface = SDL_CreateRGBSurfaceWithFormat(0, scaled_width, scaled_height,
+		SDL_BITSPERPIXEL(target_sdl_format),
+		target_sdl_format);
+	if (ss_surface == NULL) {
+		Con_Printf("SCR_ScreenShot_f: Couldn't create SDL_Surface: %s\n", SDL_GetError());
+		return;
+	}
+
+	if (SDL_RenderReadPixels(renderer, NULL, ss_surface->format->format, ss_surface->pixels, ss_surface->pitch) != 0) {
+		Con_Printf("SCR_ScreenShot_f: Couldn't read pixels from renderer: %s\n", SDL_GetError());
+		SDL_FreeSurface(ss_surface);
+		return;
+	}
+
+	WritePNGfile(imgname, ss_surface);
+	SDL_FreeSurface(ss_surface);
+	Con_Printf("Wrote %s\n", imgname);
+}
 
 
 //=============================================================================

@@ -19,7 +19,7 @@ byte* VGA_pagebase;
 static int	lockcount;
 static qboolean	vid_initialized = false;
 static SDL_Window* window = NULL;
-static SDL_Renderer* renderer = NULL;
+SDL_Renderer* renderer = NULL;
 static SDL_Texture* texture = NULL;
 static Uint32 SdlPalette[256]; // For storing the palette in texture format
 static byte* frame_buffer;    // 8-bit indexed pixel data buffer
