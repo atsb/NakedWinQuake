@@ -551,6 +551,8 @@ unsigned char* convert_indexed_to_rgb(const unsigned char* indexed_data, int wid
 
 static void WritePNGfile(char* filename, SDL_Surface* surface_to_save) {
 	int num_components;
+
+
 	if (surface_to_save->format->BytesPerPixel == 4) {
 		num_components = 4;
 	}
@@ -570,7 +572,7 @@ static void WritePNGfile(char* filename, SDL_Surface* surface_to_save) {
 		surface_to_save->pitch); // Use the surface's pitch
 
 	if (!success) {
-		Con_Printf("WritePNGfile_Scaled: failed to write %s\n", filename);
+		Con_Printf("WritePNGfile: failed to write %s\n", filename);
 	}
 
 }
@@ -583,11 +585,8 @@ SCR_ScreenShot_f
 void SCR_ScreenShot_f(void)
 {
 	int     i;
-	char    imgname[80];
+	char    pngname[80];
 	char    checkname[MAX_OSPATH];
-	const char* extension = ".png";
-	const char* base_name = "quake";
-
 	extern SDL_Renderer* renderer;
 
 	if (!renderer) {
@@ -595,15 +594,21 @@ void SCR_ScreenShot_f(void)
 		return;
 	}
 
-	// Find a file name
-	for (i = 0; i <= 99; i++) {
-		sprintf(imgname, "%s%02d%s", base_name, i, extension);
-		sprintf(checkname, "%s/%s", com_gamedir, imgname);
+// 
+// find a file name to save it to 
+// 
+	strcpy(pngname, "quake00.png");
+
+	for (i = 0; i <= 99; i++)
+	{
+		pngname[5] = i / 10 + '0';
+		pngname[6] = i % 10 + '0';
+		sprintf(checkname, "%s", pngname);
 		if (Sys_FileTime(checkname) == -1)
-			break;
+			break;	// file doesn't exist
 	}
 	if (i == 100) {
-		Con_Printf("SCR_ScreenShot_f: Couldn't create an image file (all names 00-99 taken)\n");
+		Con_Printf("SCR_ScreenShot_f: Couldn't create a PNG file\n");
 		return;
 	}
 
@@ -631,9 +636,9 @@ void SCR_ScreenShot_f(void)
 		return;
 	}
 
-	WritePNGfile(imgname, ss_surface);
+	WritePNGfile(pngname, ss_surface);
 	SDL_FreeSurface(ss_surface);
-	Con_Printf("Wrote %s\n", imgname);
+	Con_Printf("Wrote %s\n", pngname);
 }
 
 
