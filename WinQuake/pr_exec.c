@@ -208,7 +208,7 @@ void PR_StackTrace (void)
 			Con_Printf ("<NO FUNCTION>\n");
 		}
 		else
-			Con_Printf("%12s : %s\n", PR_GetString(f->s_file), PR_GetString(f->s_name));
+			Con_Printf("%12s : %s\n", pr_strings + f->s_file, pr_strings + f->s_name);
 	}
 }
 
@@ -243,7 +243,7 @@ void PR_Profile_f (void)
 		if (best)
 		{
 			if (num < 10)
-				Con_Printf("%7i %s\n", best->profile, PR_GetString(best->s_name));
+				Con_Printf("%7i %s\n", best->profile, pr_strings + best->s_name);
 			num++;
 			best->profile = 0;
 		}
@@ -483,7 +483,7 @@ while (1)
 		c->_float = !a->vector[0] && !a->vector[1] && !a->vector[2];
 		break;
 	case OP_NOT_S:
-		c->_float = !a->string || !*PR_GetString(a->string);
+		c->_float = !a->string || !pr_strings[a->string];
 		break;
 	case OP_NOT_FNC:
 		c->_float = !a->function;
@@ -501,7 +501,7 @@ while (1)
 					(a->vector[2] == b->vector[2]);
 		break;
 	case OP_EQ_S:
-		c->_float = !strcmp(PR_GetString(a->string), PR_GetString(b->string));
+		c->_float = !strcmp(pr_strings + a->string, pr_strings + b->string);
 		break;
 	case OP_EQ_E:
 		c->_float = a->_int == b->_int;
@@ -520,7 +520,7 @@ while (1)
 					(a->vector[2] != b->vector[2]);
 		break;
 	case OP_NE_S:
-		c->_float = strcmp(PR_GetString(a->string), PR_GetString(b->string));
+		c->_float = strcmp(pr_strings + a->string, pr_strings + b->string);
 		break;
 	case OP_NE_E:
 		c->_float = a->_int != b->_int;
@@ -665,41 +665,4 @@ while (1)
 	}
 }
 
-}
-
-/*----------------------*/
-
-char* pr_strtbl[MAX_PRSTR];
-int num_prstr;
-
-const char* PR_GetString(int num)
-{
-	const char* s = "";
-
-	if (num >= 0 && num < pr_strings - 1)
-		s = pr_strings + num;
-	else if (num < 0 && num >= -num_prstr)
-		s = pr_strtbl[-num - 1];
-
-	return s;
-}
-
-int PR_SetString(char* s)
-{
-	int i;
-
-	if (s - pr_strings < 0) {
-		for (i = 0; i <= num_prstr; i++)
-			if (pr_strtbl[i] == s)
-				break;
-		if (i < num_prstr)
-			return -i;
-		if (num_prstr == MAX_PRSTR - 1)
-			Sys_Error("MAX_PRSTR");
-		num_prstr++;
-		pr_strtbl[num_prstr] = s;
-		//Con_DPrintf("SET:%d == %s\n", -num_prstr, s);
-		return -num_prstr;
-	}
-	return (int)(s - pr_strings);
 }
