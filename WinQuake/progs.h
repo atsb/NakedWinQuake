@@ -118,7 +118,7 @@ extern	builtin_t* pr_builtins;
 extern int pr_numbuiltins;
 
 extern int		pr_argc;
-
+extern int pr_strings_size;
 extern	qboolean	pr_trace;
 extern	dfunction_t* pr_xfunction;
 extern	int			pr_xstatement;
@@ -133,3 +133,5 @@ void ED_PrintEdicts(void);
 void ED_PrintNum(int ent);
 
 eval_t* GetEdictFieldValue(edict_t* ed, char* field);
+
+char* PR_GetString(int num);

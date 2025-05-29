@@ -451,7 +451,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 		if (ent != clent)	// clent is ALLWAYS sent
 		{
 // ignore ents without visible models
-			if (!ent->v.modelindex || !*PR_GetString(ent->v.model))
+			if (!ent->v.modelindex || !pr_strings[ent->v.model])
 				continue;
 
 			for (i=0 ; i < ent->num_leafs ; i++)
@@ -686,8 +686,8 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 	if (bits & SU_ARMOR)
 		MSG_WriteByte (msg, ent->v.armorvalue);
 	if (bits & SU_WEAPON)
-		MSG_WriteByte (msg, SV_ModelIndex(PR_GetString(ent->v.weaponmodel)));
-	
+		MSG_WriteByte(msg, SV_ModelIndex(pr_strings + ent->v.weaponmodel));
+
 	MSG_WriteShort (msg, ent->v.health);
 	MSG_WriteByte (msg, ent->v.currentammo);
 	MSG_WriteByte (msg, ent->v.ammo_shells);
@@ -1157,7 +1157,7 @@ void SV_SpawnServer (char *server)
 	ent = EDICT_NUM(0);
 	memset (&ent->v, 0, progs->entityfields * 4);
 	ent->free = false;
-	ent->v.model = PR_SetString(sv.worldmodel->name);
+	ent->v.model = sv.worldmodel->name - pr_strings;
 	ent->v.modelindex = 1;		// world model
 	ent->v.solid = SOLID_BSP;
 	ent->v.movetype = MOVETYPE_PUSH;
@@ -1167,7 +1167,7 @@ void SV_SpawnServer (char *server)
 	else
 		pr_global_struct->deathmatch = deathmatch.value;
 
-	pr_global_struct->mapname = PR_SetString(sv.name);
+	pr_global_struct->mapname = sv.name - pr_strings;
 #ifdef QUAKE2
 	pr_global_struct->startspot = sv.startspot - pr_strings;
 #endif

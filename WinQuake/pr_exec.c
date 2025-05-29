@@ -501,7 +501,8 @@ while (1)
 					(a->vector[2] == b->vector[2]);
 		break;
 	case OP_EQ_S:
-		c->_float = !strcmp(pr_strings + a->string, pr_strings + b->string);
+		c->_float =
+			!strcmp(PR_GetString(a->string), PR_GetString(b->string));
 		break;
 	case OP_EQ_E:
 		c->_float = a->_int == b->_int;
@@ -665,4 +666,23 @@ while (1)
 	}
 }
 
+}
+
+/*----------------------------*/
+// adapted from tyrquake 0.62//
+/*--------------------------*/
+static const char** pr_strtbl = NULL;
+static int num_prstr;
+
+char* PR_GetString(int num)
+{
+	char* s = "";
+
+	if (num >= 0 && num < pr_strings_size - 1)
+		s = pr_strings + num;
+	else if (num < 0 && num >= -num_prstr)
+		s = pr_strtbl[-num - 1];
+	else
+
+	return s;
 }
