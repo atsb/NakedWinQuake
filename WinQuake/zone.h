@@ -127,5 +127,5 @@ void *Cache_Alloc (cache_user_t *c, int size, char *name);
 
 void Cache_Report (void);
 
-
+void* Z_Realloc(void* ptr, int size);
 

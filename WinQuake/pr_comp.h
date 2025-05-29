@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include <inttypes.h>
+
 // this file is shared by quake and qcc
 
 typedef int	func_t;
@@ -152,29 +154,28 @@ typedef struct
 
 
 #define	PROG_VERSION	6
-typedef struct
-{
-	int		version;
-	int		crc;			// check of header file
-	
-	int		ofs_statements;
-	int		numstatements;	// statement 0 is an error
+typedef struct {
+	int32_t version;
+	int32_t crc;		/* check of header file */
 
-	int		ofs_globaldefs;
-	int		numglobaldefs;
-	
-	int		ofs_fielddefs;
-	int		numfielddefs;
-	
-	int		ofs_functions;
-	int		numfunctions;	// function 0 is an empty
-	
-	int		ofs_strings;
-	int		numstrings;		// first string is a null string
+	int32_t ofs_statements;
+	int32_t numstatements;	/* statement 0 is an error */
 
-	int		ofs_globals;
-	int		numglobals;
-	
-	int		entityfields;
+	int32_t ofs_globaldefs;
+	int32_t numglobaldefs;
+
+	int32_t ofs_fielddefs;
+	int32_t numfielddefs;
+
+	int32_t ofs_functions;
+	int32_t numfunctions;	/* function 0 is an empty */
+
+	int32_t ofs_strings;
+	int32_t strings_size;	/* first string is a null string */
+
+	int32_t ofs_globals;
+	int32_t numglobals;
+
+	int32_t entityfields;
 } dprograms_t;
 

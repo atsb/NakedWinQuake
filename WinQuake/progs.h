@@ -103,13 +103,13 @@ int NUM_FOR_EDICT(edict_t* e);
 #define	G_EDICT(o) ((edict_t *)((byte *)sv.edicts+ *(int *)&pr_globals[o]))
 #define G_EDICTNUM(o) NUM_FOR_EDICT(G_EDICT(o))
 #define	G_VECTOR(o) (&pr_globals[o])
-#define	G_STRING(o) (PR_GetString(*(string_t *)&pr_globals[o]))
+#define	G_STRING(o) (pr_strings + *(string_t *)&pr_globals[o])
 #define	G_FUNCTION(o) (*(func_t *)&pr_globals[o])
 
 #define	E_FLOAT(e,o) (((float*)&e->v)[o])
 #define	E_INT(e,o) (*(int *)&((float*)&e->v)[o])
 #define	E_VECTOR(e,o) (&((float*)&e->v)[o])
-#define	E_STRING(e,o) (PR_GetString(*(string_t *)&((float*)&e->v)[o]))
+#define	E_STRING(e,o) (pr_strings + *(string_t *)&((float*)&e->v)[o])
 
 extern	int		type_size[8];
 
@@ -118,7 +118,7 @@ extern	builtin_t* pr_builtins;
 extern int pr_numbuiltins;
 
 extern int		pr_argc;
-
+extern int pr_strings_size;
 extern	qboolean	pr_trace;
 extern	dfunction_t* pr_xfunction;
 extern	int			pr_xstatement;
@@ -134,13 +134,4 @@ void ED_PrintNum(int ent);
 
 eval_t* GetEdictFieldValue(edict_t* ed, char* field);
 
-//
-// PR STrings stuff
-//
-#define MAX_PRSTR 1024
-
-extern char* pr_strtbl[MAX_PRSTR];
-extern int num_prstr;
-
-const char* PR_GetString(int num);
-int PR_SetString(char* s);
+char* PR_GetString(int num);
