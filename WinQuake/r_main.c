@@ -878,11 +878,11 @@ void R_EdgeDrawing(void)
 	edge_t	ledges[NUMSTACKEDGES + ((CACHE_SIZE - 1) / sizeof(edge_t)) + 1];
 	surf_t	lsurfs[NUMSTACKSURFACES + ((CACHE_SIZE - 1) / sizeof(surf_t)) + 1];
 
-	r_edges = (auxedges) ? auxedges : (edge_t*)(((uintptr_t)&ledges[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
+	r_edges = (auxedges) ? auxedges : (edge_t*)(((long)&ledges[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 
 	if (r_surfsonstack)
 	{
-		surfaces = (surf_t*)(((uintptr_t)&lsurfs[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
+		surfaces = (surf_t*)(((long)&lsurfs[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 		surf_max = &surfaces[r_cnumsurfs];
 		// surface 0 doesn't really exist; it's just a dummy because index 0
 		// is used to indicate no edge attached to surface
@@ -1035,10 +1035,10 @@ void R_RenderView (void)
 	if ( Hunk_LowMark() & 3 )
 		Sys_Error ("Hunk is missaligned");
 
-	if ( (uintptr_t)(&dummy) & 3 )
+	if ( (long)(&dummy) & 3 )
 		Sys_Error ("Stack is missaligned");
 
-	if ( (uintptr_t)(&r_warpbuffer) & 3 )
+	if ( (long)(&r_warpbuffer) & 3 )
 		Sys_Error ("Globals are missaligned");
 
 	R_RenderView_ ();
