@@ -274,14 +274,14 @@ void SV_UnlinkEdict (edict_t *ent)
 SV_TouchLinks
 ====================
 */
-void SV_TouchLinks ( edict_t *ent, areanode_t *node )
+void SV_TouchLinks(edict_t* ent, areanode_t* node)
 {
-	link_t		*l, *next;
-	edict_t		*touch;
+	link_t* l, * next;
+	edict_t* touch;
 	int			old_self, old_other;
 
-// touch linked edicts
-	for (l = node->trigger_edicts.next ; l != &node->trigger_edicts ; l = next)
+	// touch linked edicts
+	for (l = node->trigger_edicts.next; l != &node->trigger_edicts; l = next)
 	{
 		next = l->next;
 		touch = EDICT_FROM_AREA(l);
@@ -290,11 +290,11 @@ void SV_TouchLinks ( edict_t *ent, areanode_t *node )
 		if (!touch->v.touch || touch->v.solid != SOLID_TRIGGER)
 			continue;
 		if (ent->v.absmin[0] > touch->v.absmax[0]
-		|| ent->v.absmin[1] > touch->v.absmax[1]
-		|| ent->v.absmin[2] > touch->v.absmax[2]
-		|| ent->v.absmax[0] < touch->v.absmin[0]
-		|| ent->v.absmax[1] < touch->v.absmin[1]
-		|| ent->v.absmax[2] < touch->v.absmin[2] )
+			|| ent->v.absmin[1] > touch->v.absmax[1]
+			|| ent->v.absmin[2] > touch->v.absmax[2]
+			|| ent->v.absmax[0] < touch->v.absmin[0]
+			|| ent->v.absmax[1] < touch->v.absmin[1]
+			|| ent->v.absmax[2] < touch->v.absmin[2])
 			continue;
 		old_self = pr_global_struct->self;
 		old_other = pr_global_struct->other;
@@ -302,20 +302,20 @@ void SV_TouchLinks ( edict_t *ent, areanode_t *node )
 		pr_global_struct->self = EDICT_TO_PROG(touch);
 		pr_global_struct->other = EDICT_TO_PROG(ent);
 		pr_global_struct->time = sv.time;
-		PR_ExecuteProgram (touch->v.touch);
+		PR_ExecuteProgram(touch->v.touch);
 
 		pr_global_struct->self = old_self;
 		pr_global_struct->other = old_other;
 	}
-	
-// recurse down both sides
+
+	// recurse down both sides
 	if (node->axis == -1)
 		return;
-	
-	if ( ent->v.absmax[node->axis] > node->dist )
-		SV_TouchLinks ( ent, node->children[0] );
-	if ( ent->v.absmin[node->axis] < node->dist )
-		SV_TouchLinks ( ent, node->children[1] );
+
+	if (ent->v.absmax[node->axis] > node->dist)
+		SV_TouchLinks(ent, node->children[0]);
+	if (ent->v.absmin[node->axis] < node->dist)
+		SV_TouchLinks(ent, node->children[1]);
 }
 
 

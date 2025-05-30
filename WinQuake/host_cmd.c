@@ -1276,25 +1276,25 @@ void Host_PreSpawn_f (void)
 Host_Spawn_f
 ==================
 */
-void Host_Spawn_f (void)
+void Host_Spawn_f(void)
 {
 	int		i;
-	client_t	*client;
-	edict_t	*ent;
+	client_t* client;
+	edict_t* ent;
 
 	if (cmd_source == src_command)
 	{
-		Con_Printf ("spawn is not valid from the console\n");
+		Con_Printf("spawn is not valid from the console\n");
 		return;
 	}
 
 	if (host_client->spawned)
 	{
-		Con_Printf ("Spawn not valid -- allready spawned\n");
+		Con_Printf("Spawn not valid -- allready spawned\n");
 		return;
 	}
 
-// run the entrance script
+	// run the entrance script
 	if (sv.loadgame)
 	{	// loaded games are fully inited allready
 		// if this is the last client to be connected, unpause
@@ -1305,93 +1305,93 @@ void Host_Spawn_f (void)
 		// set up the edict
 		ent = host_client->edict;
 
-		memset (&ent->v, 0, progs->entityfields * 4);
+		memset(&ent->v, 0, progs->entityfields * 4);
 		ent->v.colormap = NUM_FOR_EDICT(ent);
 		ent->v.team = (host_client->colors & 15) + 1;
 		ent->v.netname = host_client->name - pr_strings;
 
 		// copy spawn parms out of the client_t
 
-		for (i=0 ; i< NUM_SPAWN_PARMS ; i++)
+		for (i = 0; i < NUM_SPAWN_PARMS; i++)
 			(&pr_global_struct->parm1)[i] = host_client->spawn_parms[i];
 
 		// call the spawn function
 
 		pr_global_struct->time = sv.time;
 		pr_global_struct->self = EDICT_TO_PROG(sv_player);
-		PR_ExecuteProgram (pr_global_struct->ClientConnect);
+		PR_ExecuteProgram(pr_global_struct->ClientConnect);
 
 		if ((Sys_FloatTime() - host_client->netconnection->connecttime) <= sv.time)
-			Sys_Printf ("%s entered the game\n", host_client->name);
+			Sys_Printf("%s entered the game\n", host_client->name);
 
-		PR_ExecuteProgram (pr_global_struct->PutClientInServer);	
+		PR_ExecuteProgram(pr_global_struct->PutClientInServer);
 	}
 
 
-// send all current names, colors, and frag counts
-	SZ_Clear (&host_client->message);
+	// send all current names, colors, and frag counts
+	SZ_Clear(&host_client->message);
 
-// send time of update
-	MSG_WriteByte (&host_client->message, svc_time);
-	MSG_WriteFloat (&host_client->message, sv.time);
+	// send time of update
+	MSG_WriteByte(&host_client->message, svc_time);
+	MSG_WriteFloat(&host_client->message, sv.time);
 
-	for (i=0, client = svs.clients ; i<svs.maxclients ; i++, client++)
+	for (i = 0, client = svs.clients; i < svs.maxclients; i++, client++)
 	{
-		MSG_WriteByte (&host_client->message, svc_updatename);
-		MSG_WriteByte (&host_client->message, i);
-		MSG_WriteString (&host_client->message, client->name);
-		MSG_WriteByte (&host_client->message, svc_updatefrags);
-		MSG_WriteByte (&host_client->message, i);
-		MSG_WriteShort (&host_client->message, client->old_frags);
-		MSG_WriteByte (&host_client->message, svc_updatecolors);
-		MSG_WriteByte (&host_client->message, i);
-		MSG_WriteByte (&host_client->message, client->colors);
+		MSG_WriteByte(&host_client->message, svc_updatename);
+		MSG_WriteByte(&host_client->message, i);
+		MSG_WriteString(&host_client->message, client->name);
+		MSG_WriteByte(&host_client->message, svc_updatefrags);
+		MSG_WriteByte(&host_client->message, i);
+		MSG_WriteShort(&host_client->message, client->old_frags);
+		MSG_WriteByte(&host_client->message, svc_updatecolors);
+		MSG_WriteByte(&host_client->message, i);
+		MSG_WriteByte(&host_client->message, client->colors);
 	}
-	
-// send all current light styles
-	for (i=0 ; i<MAX_LIGHTSTYLES ; i++)
+
+	// send all current light styles
+	for (i = 0; i < MAX_LIGHTSTYLES; i++)
 	{
-		MSG_WriteByte (&host_client->message, svc_lightstyle);
-		MSG_WriteByte (&host_client->message, (char)i);
-		MSG_WriteString (&host_client->message, sv.lightstyles[i]);
+		MSG_WriteByte(&host_client->message, svc_lightstyle);
+		MSG_WriteByte(&host_client->message, (char)i);
+		MSG_WriteString(&host_client->message, sv.lightstyles[i]);
 	}
 
-//
-// send some stats
-//
-	MSG_WriteByte (&host_client->message, svc_updatestat);
-	MSG_WriteByte (&host_client->message, STAT_TOTALSECRETS);
-	MSG_WriteLong (&host_client->message, pr_global_struct->total_secrets);
+	//
+	// send some stats
+	//
+	MSG_WriteByte(&host_client->message, svc_updatestat);
+	MSG_WriteByte(&host_client->message, STAT_TOTALSECRETS);
+	MSG_WriteLong(&host_client->message, pr_global_struct->total_secrets);
 
-	MSG_WriteByte (&host_client->message, svc_updatestat);
-	MSG_WriteByte (&host_client->message, STAT_TOTALMONSTERS);
-	MSG_WriteLong (&host_client->message, pr_global_struct->total_monsters);
+	MSG_WriteByte(&host_client->message, svc_updatestat);
+	MSG_WriteByte(&host_client->message, STAT_TOTALMONSTERS);
+	MSG_WriteLong(&host_client->message, pr_global_struct->total_monsters);
 
-	MSG_WriteByte (&host_client->message, svc_updatestat);
-	MSG_WriteByte (&host_client->message, STAT_SECRETS);
-	MSG_WriteLong (&host_client->message, pr_global_struct->found_secrets);
+	MSG_WriteByte(&host_client->message, svc_updatestat);
+	MSG_WriteByte(&host_client->message, STAT_SECRETS);
+	MSG_WriteLong(&host_client->message, pr_global_struct->found_secrets);
 
-	MSG_WriteByte (&host_client->message, svc_updatestat);
-	MSG_WriteByte (&host_client->message, STAT_MONSTERS);
-	MSG_WriteLong (&host_client->message, pr_global_struct->killed_monsters);
+	MSG_WriteByte(&host_client->message, svc_updatestat);
+	MSG_WriteByte(&host_client->message, STAT_MONSTERS);
+	MSG_WriteLong(&host_client->message, pr_global_struct->killed_monsters);
 
-	
-//
-// send a fixangle
-// Never send a roll angle, because savegames can catch the server
-// in a state where it is expecting the client to correct the angle
-// and it won't happen if the game was just loaded, so you wind up
-// with a permanent head tilt
-	ent = EDICT_NUM( 1 + (host_client - svs.clients) );
-	MSG_WriteByte (&host_client->message, svc_setangle);
-	for (i=0 ; i < 2 ; i++)
-		MSG_WriteAngle (&host_client->message, ent->v.angles[i] );
-	MSG_WriteAngle (&host_client->message, 0 );
 
-	SV_WriteClientdataToMessage (sv_player, &host_client->message);
+	//
+	// send a fixangle
+	// Never send a roll angle, because savegames can catch the server
+	// in a state where it is expecting the client to correct the angle
+	// and it won't happen if the game was just loaded, so you wind up
+	// with a permanent head tilt
+	ent = EDICT_NUM(1 + (host_client - svs.clients));
+	MSG_WriteByte(&host_client->message, svc_setangle);
+	for (i = 0; i < 2; i++)
+		MSG_WriteAngle(&host_client->message, ent->v.angles[i]);
+	MSG_WriteAngle(&host_client->message, 0);
 
-	MSG_WriteByte (&host_client->message, svc_signonnum);
-	MSG_WriteByte (&host_client->message, 3);
+	SV_WriteClientdataToMessage(sv_player, &host_client->message);
+
+	MSG_WriteByte(&host_client->message, svc_signonnum);
+	MSG_WriteByte(&host_client->message, 3);
 	host_client->sendsignon = true;
 }
 

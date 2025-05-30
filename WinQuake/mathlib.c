@@ -110,8 +110,6 @@ void PerpendicularVector( vec3_t dst, const vec3_t src )
 	VectorNormalize( dst );
 }
 
-//johnfitz -- removed RotatePointAroundVector() becuase it's no longer used and my compiler fucked it up anyway
-
 /*-----------------------------------------------------------------*/
 
 

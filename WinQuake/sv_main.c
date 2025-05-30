@@ -238,32 +238,32 @@ Initializes a client_t for a new net connection.  This will only be called
 once for a player each game, not once for each level change.
 ================
 */
-void SV_ConnectClient (int clientnum)
+void SV_ConnectClient(int clientnum)
 {
-	edict_t			*ent;
-	client_t		*client;
+	edict_t* ent;
+	client_t* client;
 	int				edictnum;
-	struct qsocket_s *netconnection;
+	struct qsocket_s* netconnection;
 	int				i;
 	float			spawn_parms[NUM_SPAWN_PARMS];
 
 	client = svs.clients + clientnum;
 
-	Con_DPrintf ("Client %s connected\n", client->netconnection->address);
+	Con_DPrintf("Client %s connected\n", client->netconnection->address);
 
-	edictnum = clientnum+1;
+	edictnum = clientnum + 1;
 
 	ent = EDICT_NUM(edictnum);
-	
-// set up the client_t
+
+	// set up the client_t
 	netconnection = client->netconnection;
-	
+
 	if (sv.loadgame)
-		memcpy (spawn_parms, client->spawn_parms, sizeof(spawn_parms));
-	memset (client, 0, sizeof(*client));
+		memcpy(spawn_parms, client->spawn_parms, sizeof(spawn_parms));
+	memset(client, 0, sizeof(*client));
 	client->netconnection = netconnection;
 
-	strcpy (client->name, "unconnected");
+	strcpy(client->name, "unconnected");
 	client->active = true;
 	client->spawned = false;
 	client->edict = ent;
@@ -274,20 +274,20 @@ void SV_ConnectClient (int clientnum)
 #ifdef IDGODS
 	client->privileged = IsID(&client->netconnection->addr);
 #else	
-	client->privileged = false;				
+	client->privileged = false;
 #endif
 
 	if (sv.loadgame)
-		memcpy (client->spawn_parms, spawn_parms, sizeof(spawn_parms));
+		memcpy(client->spawn_parms, spawn_parms, sizeof(spawn_parms));
 	else
 	{
-	// call the progs to get default spawn parms for the new client
-		PR_ExecuteProgram (pr_global_struct->SetNewParms);
-		for (i=0 ; i<NUM_SPAWN_PARMS ; i++)
+		// call the progs to get default spawn parms for the new client
+		PR_ExecuteProgram(pr_global_struct->SetNewParms);
+		for (i = 0; i < NUM_SPAWN_PARMS; i++)
 			client->spawn_parms[i] = (&pr_global_struct->parm1)[i];
 	}
 
-	SV_SendServerinfo (client);
+	SV_SendServerinfo(client);
 }
 
 
@@ -1009,21 +1009,21 @@ Grabs the current state of each client for saving across the
 transition to another level
 ================
 */
-void SV_SaveSpawnparms (void)
+void SV_SaveSpawnparms(void)
 {
 	int		i, j;
 
 	svs.serverflags = pr_global_struct->serverflags;
 
-	for (i=0, host_client = svs.clients ; i<svs.maxclients ; i++, host_client++)
+	for (i = 0, host_client = svs.clients; i < svs.maxclients; i++, host_client++)
 	{
 		if (!host_client->active)
 			continue;
 
-	// call the progs to get default spawn parms for the new client
+		// call the progs to get default spawn parms for the new client
 		pr_global_struct->self = EDICT_TO_PROG(host_client->edict);
-		PR_ExecuteProgram (pr_global_struct->SetChangeParms);
-		for (j=0 ; j<NUM_SPAWN_PARMS ; j++)
+		PR_ExecuteProgram(pr_global_struct->SetChangeParms);
+		for (j = 0; j < NUM_SPAWN_PARMS; j++)
 			host_client->spawn_parms[j] = (&pr_global_struct->parm1)[j];
 	}
 }

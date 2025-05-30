@@ -1,6 +1,5 @@
 /*
 Copyright (C) 1996-2001 Id Software, Inc.
-Copyright (C) 2002-2009 John Fitzgibbons and others
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -138,8 +137,8 @@ edict_t *ED_Alloc (void)
 		}
 	}
 
-	if (i == sv.max_edicts) //johnfitz -- use sv.max_edicts instead of MAX_EDICTS
-		Host_Error ("ED_Alloc: no free edicts (max_edicts is %i)", sv.max_edicts); //johnfitz -- was Sys_Error
+	if (i == sv.max_edicts)
+		Host_Error ("ED_Alloc: no free edicts (max_edicts is %i)", sv.max_edicts);
 
 	sv.num_edicts++;
 	e = EDICT_NUM(i);
@@ -487,7 +486,7 @@ void ED_Print (edict_t *ed)
 		return;
 	}
 
-	Con_SafePrintf("\nEDICT %i:\n", NUM_FOR_EDICT(ed)); //johnfitz -- was Con_Printf
+	Con_SafePrintf("\nEDICT %i:\n", NUM_FOR_EDICT(ed));
 	for (i=1 ; i<progs->numfielddefs ; i++)
 	{
 		d = &pr_fielddefs[i];
@@ -507,11 +506,11 @@ void ED_Print (edict_t *ed)
 		if (j == type_size[type])
 			continue;
 
-		Con_SafePrintf ("%s",name); //johnfitz -- was Con_Printf
+		Con_SafePrintf ("%s",name);
 		while (l++ < 15)
-			Con_SafePrintf (" "); //johnfitz -- was Con_Printf
+			Con_SafePrintf (" ");
 
-		Con_SafePrintf ("%s\n", PR_ValueString(d->type, (eval_t *)v)); //johnfitz -- was Con_Printf
+		Con_SafePrintf ("%s\n", PR_ValueString(d->type, (eval_t *)v));
 	}
 }
 
@@ -809,9 +808,7 @@ qboolean	ED_ParseEpair (void *base, ddef_t *key, char *s)
 		def = ED_FindField (s);
 		if (!def)
 		{
-			//johnfitz -- HACK -- suppress error becuase fog/sky fields might not be mentioned in defs.qc
-			if (strncmp(s, "sky", 3) && strcmp(s, "fog"))
-				Con_DPrintf ("Can't find field %s\n", s);
+			Con_DPrintf ("Can't find field %s\n", s);
 			return false;
 		}
 		*(int *)d = G_INT(def->ofs);
@@ -908,9 +905,7 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 		key = ED_FindField (keyname);
 		if (!key)
 		{
-			//johnfitz -- HACK -- suppress error becuase fog/sky/alpha fields might not be mentioned in defs.qc
-			if (strncmp(keyname, "sky", 3) && strcmp(keyname, "fog") && strcmp(keyname, "alpha"))
-				Con_DPrintf ("\"%s\" is not a field\n", keyname); //johnfitz -- was Con_Printf
+			Con_DPrintf ("\"%s\" is not a field\n", keyname);
 			continue;
 		}
 
@@ -995,7 +990,7 @@ void ED_LoadFromFile (char *data)
 //
 		if (!ent->v.classname)
 		{
-			Con_SafePrintf ("No classname for:\n"); //johnfitz -- was Con_Printf
+			Con_SafePrintf ("No classname for:\n");
 			ED_Print (ent);
 			ED_Free (ent);
 			continue;
@@ -1006,7 +1001,7 @@ void ED_LoadFromFile (char *data)
 
 		if (!func)
 		{
-			Con_SafePrintf ("No spawn function for:\n"); //johnfitz -- was Con_Printf
+			Con_SafePrintf ("No spawn function for:\n");
 			ED_Print (ent);
 			ED_Free (ent);
 			continue;
