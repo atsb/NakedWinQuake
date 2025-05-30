@@ -671,7 +671,9 @@ while (1)
 /*----------------------------*/
 // adapted from tyrquake 0.62//
 /*--------------------------*/
+#define PR_STRTBL_CHUNK 256
 static const char** pr_strtbl = NULL;
+static int pr_strtbl_size;
 static int num_prstr;
 
 char* PR_GetString(int num)
@@ -685,4 +687,26 @@ char* PR_GetString(int num)
 	else
 
 	return s;
+}
+
+int
+PR_SetString(char* s)
+{
+	int i;
+
+	if (s - pr_strings < 0 || s - pr_strings > pr_strings_size - 2) {
+		for (i = 0; i < num_prstr; i++)
+			if (pr_strtbl[i] == s)
+				break;
+		if (i < num_prstr)
+			return -i - 1;
+		if (num_prstr == pr_strtbl_size) {
+			pr_strtbl_size += PR_STRTBL_CHUNK;
+			pr_strtbl = Z_Realloc(pr_strtbl, pr_strtbl_size * sizeof(char*));
+		}
+		pr_strtbl[num_prstr] = s;
+		num_prstr++;
+		return -num_prstr;
+	}
+	return (int)(s - pr_strings);
 }

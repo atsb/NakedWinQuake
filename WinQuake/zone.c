@@ -135,6 +135,40 @@ void Z_Free (void *ptr)
 
 /*
 ========================
+Z_Realloc
+========================
+*/
+void* Z_Realloc(void* ptr, int size)
+{
+	int old_size;
+	void* old_ptr;
+	memblock_t* block;
+
+	if (!ptr)
+		return Z_Malloc(size);
+
+	block = (memblock_t*)((byte*)ptr - sizeof(memblock_t));
+	if (block->id != ZONEID)
+		Sys_Error("Z_Realloc: realloced a pointer without ZONEID");
+	if (block->tag == 0)
+		Sys_Error("Z_Realloc: realloced a freed pointer");
+
+	old_size = block->size;
+	old_ptr = ptr;
+
+	Z_Free(ptr);
+	ptr = Z_TagMalloc(size, 1);
+	if (!ptr)
+		Sys_Error("Z_Realloc: failed on allocation of %i bytes", size);
+
+	if (ptr != old_ptr)
+		memmove(ptr, old_ptr, min(old_size, size));
+
+	return ptr;
+}
+
+/*
+========================
 Z_Malloc
 ========================
 */
