@@ -521,7 +521,7 @@ while (1)
 					(a->vector[2] != b->vector[2]);
 		break;
 	case OP_NE_S:
-		c->_float = strcmp(pr_strings + a->string, pr_strings + b->string);
+		c->_float = strcmp(PR_GetString(a->string), PR_GetString(b->string));
 		break;
 	case OP_NE_E:
 		c->_float = a->_int != b->_int;

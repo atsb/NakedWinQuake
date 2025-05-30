@@ -111,6 +111,9 @@ int NUM_FOR_EDICT(edict_t* e);
 #define	E_VECTOR(e,o) (&((float*)&e->v)[o])
 #define	E_STRING(e,o) (pr_strings + *(string_t *)&((float*)&e->v)[o])
 
+#define	PFG_STRING(o) (PR_GetString(*(string_t *)&pr_globals[o]))
+#define	PFE_STRING(e,o) (PR_GetString(*(string_t *)&((float*)&e->v)[o]))
+
 extern	int		type_size[8];
 
 typedef void (*builtin_t) (void);
@@ -135,3 +138,4 @@ void ED_PrintNum(int ent);
 eval_t* GetEdictFieldValue(edict_t* ed, char* field);
 
 char* PR_GetString(int num);
+int PR_SetString(char* s);

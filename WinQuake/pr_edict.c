@@ -340,7 +340,7 @@ char *PR_UglyValueString (etype_t type, eval_t *val)
 	switch (type)
 	{
 	case ev_string:
-		sprintf(line, "%s", pr_strings + val->string);
+		sprintf(line, "%s", PR_GetString(val->string));
 		break;
 	case ev_entity:	
 		sprintf (line, "%i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));

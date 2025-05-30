@@ -38,7 +38,7 @@ char *PF_VarString (int	first)
 	out[0] = 0;
 	for (i=first ; i<pr_argc ; i++)
 	{
-		strcat (out, G_STRING((OFS_PARM0+i*3)));
+		strcat (out, PFG_STRING((OFS_PARM0+i*3)));
 	}
 	return out;
 }
@@ -1069,7 +1069,7 @@ void PF_precache_sound (void)
 	if (sv.state != ss_loading)
 		PR_RunError ("PF_Precache_*: Precache can only be done in spawn functions");
 		
-	s = G_STRING(OFS_PARM0);
+	s = PFG_STRING(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 	PR_CheckEmptyString (s);
 	
@@ -1094,7 +1094,7 @@ void PF_precache_model (void)
 	if (sv.state != ss_loading)
 		PR_RunError ("PF_Precache_*: Precache can only be done in spawn functions");
 		
-	s = G_STRING(OFS_PARM0);
+	s = PFG_STRING(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 	PR_CheckEmptyString (s);
 
