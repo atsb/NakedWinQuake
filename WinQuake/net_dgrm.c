@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // net_dgrm.c
 
+#include <stdint.h>
+
 // This is enables a simple IP banning mechanism
 #define BAN_TEST
 

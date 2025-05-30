@@ -4,7 +4,7 @@
 #include "quakedef.h"
 #include "d_local.h"
 
-viddef_t    vid;                // global video state
+extern viddef_t    vid;                // global video state
 unsigned short  d_8to16table[256];
 
 #define BASEWIDTH           320
