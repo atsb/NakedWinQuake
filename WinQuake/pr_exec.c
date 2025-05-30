@@ -208,7 +208,7 @@ void PR_StackTrace (void)
 			Con_Printf ("<NO FUNCTION>\n");
 		}
 		else
-			Con_Printf("%12s : %s\n", pr_strings + f->s_file, pr_strings + f->s_name);
+			Con_Printf ("%12s : %s\n", PR_GetString(f->s_file), PR_GetString(f->s_name));
 	}
 }
 
@@ -243,7 +243,7 @@ void PR_Profile_f (void)
 		if (best)
 		{
 			if (num < 10)
-				Con_Printf("%7i %s\n", best->profile, pr_strings + best->s_name);
+				Con_Printf ("%7i %s\n", best->profile, PR_GetString(best->s_name));
 			num++;
 			best->profile = 0;
 		}
@@ -483,7 +483,7 @@ while (1)
 		c->_float = !a->vector[0] && !a->vector[1] && !a->vector[2];
 		break;
 	case OP_NOT_S:
-		c->_float = !a->string || !pr_strings[a->string];
+		c->_float = !a->string || !*PR_GetString(a->string);
 		break;
 	case OP_NOT_FNC:
 		c->_float = !a->function;
@@ -666,47 +666,4 @@ while (1)
 	}
 }
 
-}
-
-/*----------------------------*/
-// adapted from tyrquake 0.62//
-/*--------------------------*/
-#define PR_STRTBL_CHUNK 256
-static const char** pr_strtbl = NULL;
-static int pr_strtbl_size;
-static int num_prstr;
-
-char* PR_GetString(int num)
-{
-	char* s = "";
-
-	if (num >= 0 && num < pr_strings_size - 1)
-		s = pr_strings + num;
-	else if (num < 0 && num >= -num_prstr)
-		s = pr_strtbl[-num - 1];
-	else
-
-	return s;
-}
-
-int
-PR_SetString(char* s)
-{
-	int i;
-
-	if (s - pr_strings < 0 || s - pr_strings > pr_strings_size - 2) {
-		for (i = 0; i < num_prstr; i++)
-			if (pr_strtbl[i] == s)
-				break;
-		if (i < num_prstr)
-			return -i - 1;
-		if (num_prstr == pr_strtbl_size) {
-			pr_strtbl_size += PR_STRTBL_CHUNK;
-			pr_strtbl = Z_Realloc(pr_strtbl, pr_strtbl_size * sizeof(char*));
-		}
-		pr_strtbl[num_prstr] = s;
-		num_prstr++;
-		return -num_prstr;
-	}
-	return (int)(s - pr_strings);
 }

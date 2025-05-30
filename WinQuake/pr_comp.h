@@ -155,27 +155,27 @@ typedef struct
 
 #define	PROG_VERSION	6
 typedef struct {
-	int32_t version;
-	int32_t crc;		/* check of header file */
+	int version;
+	int crc;		/* check of header file */
 
-	int32_t ofs_statements;
-	int32_t numstatements;	/* statement 0 is an error */
+	int ofs_statements;
+	int numstatements;	/* statement 0 is an error */
 
-	int32_t ofs_globaldefs;
-	int32_t numglobaldefs;
+	int ofs_globaldefs;
+	int numglobaldefs;
 
-	int32_t ofs_fielddefs;
-	int32_t numfielddefs;
+	int ofs_fielddefs;
+	int numfielddefs;
 
-	int32_t ofs_functions;
-	int32_t numfunctions;	/* function 0 is an empty */
+	int ofs_functions;
+	int numfunctions;	/* function 0 is an empty */
 
-	int32_t ofs_strings;
-	int32_t strings_size;	/* first string is a null string */
+	int ofs_strings;
+	int numstrings;	/* first string is a null string */
 
-	int32_t ofs_globals;
-	int32_t numglobals;
+	int ofs_globals;
+	int numglobals;
 
-	int32_t entityfields;
+	int entityfields;
 } dprograms_t;
 

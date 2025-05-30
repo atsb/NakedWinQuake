@@ -20,6 +20,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+#define	STRINGTEMP_BUFFERS		16
+#define	STRINGTEMP_LENGTH		1024
+static	char	pr_string_temp[STRINGTEMP_BUFFERS][STRINGTEMP_LENGTH];
+static	byte	pr_string_tempindex = 0;
+
+static char *
+PR_GetTempString(void)
+{
+	return pr_string_temp[(STRINGTEMP_BUFFERS-1) & ++pr_string_tempindex];
+}
+
 #define	RETURN_EDICT(e) (((int *)pr_globals)[OFS_RETURN] = EDICT_TO_PROG(e))
 
 /*
@@ -38,7 +49,7 @@ char *PF_VarString (int	first)
 	out[0] = 0;
 	for (i=first ; i<pr_argc ; i++)
 	{
-		strcat (out, PFG_STRING((OFS_PARM0+i*3)));
+		strcat (out, G_STRING((OFS_PARM0+i*3)));
 	}
 	return out;
 }
@@ -61,7 +72,7 @@ void PF_error (void)
 	
 	s = PF_VarString(0);
 	Con_Printf("======SERVER ERROR in %s:\n%s\n"
-	,pr_strings + pr_xfunction->s_name, s);
+	,PR_GetString(pr_xfunction->s_name), s);
 	ed = PROG_TO_EDICT(pr_global_struct->self);
 	ED_Print (ed);
 
@@ -85,7 +96,7 @@ void PF_objerror (void)
 	
 	s = PF_VarString(0);
 	Con_Printf("======OBJECT ERROR in %s:\n%s\n"
-	,pr_strings + pr_xfunction->s_name, s);
+	,PR_GetString(pr_xfunction->s_name), s);
 	ed = PROG_TO_EDICT(pr_global_struct->self);
 	ED_Print (ed);
 	ED_Free (ed);
@@ -250,7 +261,7 @@ void PF_setmodel (void)
 		PR_RunError ("no precache: %s\n", m);
 		
 
-	e->v.model = PR_SetString(m);
+	e->v.model = PR_SetEngineString(m);
 	e->v.modelindex = i; //SV_ModelIndex (m);
 
 	mod = sv.models[ (int)e->v.modelindex];  // Mod_ForName (m, true);
@@ -917,18 +928,18 @@ void PF_dprint (void)
 	Con_DPrintf ("%s",PF_VarString(0));
 }
 
-char	pr_string_temp[128];
-
-void PF_ftos(void)
+void PF_ftos (void)
 {
 	float	v;
+	char	*s;
 	v = G_FLOAT(OFS_PARM0);
+	s = PR_GetTempString();
 
 	if (v == (int)v)
-		sprintf(pr_string_temp, "%d", (int)v);
+		sprintf (s, "%d",(int)v);
 	else
-		sprintf(pr_string_temp, "%5.1f", v);
-	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+		sprintf (s, "%5.1f",v);
+	G_INT(OFS_RETURN) = PR_SetEngineString(s);
 }
 
 void PF_fabs(void)
@@ -938,10 +949,13 @@ void PF_fabs(void)
 	G_FLOAT(OFS_RETURN) = fabs(v);
 }
 
-void PF_vtos(void)
+void PF_vtos (void)
 {
-	sprintf(pr_string_temp, "'%5.1f %5.1f %5.1f'", G_VECTOR(OFS_PARM0)[0], G_VECTOR(OFS_PARM0)[1], G_VECTOR(OFS_PARM0)[2]);
-	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+	char	*s;
+
+	s = PR_GetTempString();
+	sprintf (s, "'%5.1f %5.1f %5.1f'", G_VECTOR(OFS_PARM0)[0], G_VECTOR(OFS_PARM0)[1], G_VECTOR(OFS_PARM0)[2]);
+	G_INT(OFS_RETURN) = PR_SetEngineString(s);
 }
 
 #ifdef QUAKE2
@@ -1069,7 +1083,7 @@ void PF_precache_sound (void)
 	if (sv.state != ss_loading)
 		PR_RunError ("PF_Precache_*: Precache can only be done in spawn functions");
 		
-	s = PFG_STRING(OFS_PARM0);
+	s = G_STRING(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 	PR_CheckEmptyString (s);
 	
@@ -1094,7 +1108,7 @@ void PF_precache_model (void)
 	if (sv.state != ss_loading)
 		PR_RunError ("PF_Precache_*: Precache can only be done in spawn functions");
 		
-	s = PFG_STRING(OFS_PARM0);
+	s = G_STRING(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 	PR_CheckEmptyString (s);
 
@@ -1587,7 +1601,7 @@ void PF_makestatic (void)
 
 	MSG_WriteByte (&sv.signon,svc_spawnstatic);
 
-	MSG_WriteByte(&sv.signon, SV_ModelIndex(pr_strings + ent->v.model));
+	MSG_WriteByte (&sv.signon, SV_ModelIndex(PR_GetString(ent->v.model)));
 
 	MSG_WriteByte (&sv.signon, ent->v.frame);
 	MSG_WriteByte (&sv.signon, ent->v.colormap);
