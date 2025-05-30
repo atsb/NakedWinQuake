@@ -139,7 +139,7 @@ void Q_memset (void *dest, int fill, int count)
 {
 	int             i;
 	
-	if ( (((uintptr_t)dest | count) & 3) == 0)
+	if ( (((size_t)dest | count) & 3) == 0)
 	{
 		count >>= 2;
 		fill = fill | (fill<<8) | (fill<<16) | (fill<<24);
@@ -155,7 +155,7 @@ void Q_memcpy (void *dest, void *src, int count)
 {
 	int             i;
 	
-	if (( ( (uintptr_t)dest | (uintptr_t)src | count) & 3) == 0 )
+	if (( ( (size_t)dest | (size_t)src | count) & 3) == 0 )
 	{
 		count>>=2;
 		for (i=0 ; i<count ; i++)
