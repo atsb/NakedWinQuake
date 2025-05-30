@@ -137,7 +137,7 @@ int WIPX_Connect(int handle, struct qsockaddr* addr)
 
 int WIPX_CheckNewConnections(void)
 {
-	uintptr_t	available;
+	unsigned long	available;
 
 	if (net_acceptsocket == -1)
 		return -1;

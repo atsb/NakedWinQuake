@@ -424,10 +424,10 @@ int main(int c, char** v)
 Sys_MakeCodeWriteable
 ================
 */
-void Sys_MakeCodeWriteable(uintptr_t startaddr, uintptr_t length)
+void Sys_MakeCodeWriteable(unsigned long startaddr, unsigned long length)
 {
 #ifdef _WIN32
-	uintptr_t addr;
+	unsigned long addr;
 	DWORD oldProtect;
 	addr = startaddr;
 	if (!VirtualProtect((LPVOID)addr, length, PAGE_EXECUTE_READWRITE, &oldProtect)) {
@@ -435,7 +435,7 @@ void Sys_MakeCodeWriteable(uintptr_t startaddr, uintptr_t length)
 	}
 #else
 	int r;
-	uintptr_t addr;
+	unsigned long addr;
 	int psize = getpagesize();
 
 	fprintf(stderr, "writable code %lx-%lx\n", startaddr, startaddr + length);

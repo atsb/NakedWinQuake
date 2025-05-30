@@ -31,7 +31,7 @@ static int net_controlsocket;
 static int net_broadcastsocket = 0;
 static struct qsockaddr broadcastaddr;
 
-static uintptr_t myAddr;
+static unsigned long myAddr;
 
 qboolean	winsock_lib_initialized;
 
@@ -92,7 +92,7 @@ void WINS_GetLocalAddress()
 {
 	struct hostent	*local = NULL;
 	char			buff[MAXHOSTNAMELEN];
-	uintptr_t	addr;
+	unsigned long	addr;
 
 	if (myAddr != INADDR_ANY)
 		return;
