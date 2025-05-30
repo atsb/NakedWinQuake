@@ -937,7 +937,7 @@ void Host_Name_f (void)
 			Con_Printf ("%s renamed to %s\n", host_client->name, newName);
 	Q_strcpy (host_client->name, newName);
 	host_client->edict->v.netname = host_client->name - pr_strings;
-
+	
 // send notification to all clients
 	
 	MSG_WriteByte (&sv.reliable_datagram, svc_updatename);

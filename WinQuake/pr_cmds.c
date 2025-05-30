@@ -71,7 +71,7 @@ void PF_error (void)
 	edict_t	*ed;
 	
 	s = PF_VarString(0);
-	Con_Printf("======SERVER ERROR in %s:\n%s\n"
+	Con_Printf ("======SERVER ERROR in %s:\n%s\n"
 	,PR_GetString(pr_xfunction->s_name), s);
 	ed = PROG_TO_EDICT(pr_global_struct->self);
 	ED_Print (ed);
@@ -95,7 +95,7 @@ void PF_objerror (void)
 	edict_t	*ed;
 	
 	s = PF_VarString(0);
-	Con_Printf("======OBJECT ERROR in %s:\n%s\n"
+	Con_Printf ("======OBJECT ERROR in %s:\n%s\n"
 	,PR_GetString(pr_xfunction->s_name), s);
 	ed = PROG_TO_EDICT(pr_global_struct->self);
 	ED_Print (ed);
@@ -261,7 +261,7 @@ void PF_setmodel (void)
 		PR_RunError ("no precache: %s\n", m);
 		
 
-	e->v.model = PR_SetEngineString(m);
+	e->v.model = PR_SetEngineString(*check);
 	e->v.modelindex = i; //SV_ModelIndex (m);
 
 	mod = sv.models[ (int)e->v.modelindex];  // Mod_ForName (m, true);
@@ -283,7 +283,10 @@ bprint(value)
 */
 void PF_bprint (void)
 {
+	char		*s;
 
+	s = PF_VarString(0);
+	SV_BroadcastPrintf ("%s", s);
 }
 
 /*
@@ -942,7 +945,7 @@ void PF_ftos (void)
 	G_INT(OFS_RETURN) = PR_SetEngineString(s);
 }
 
-void PF_fabs(void)
+void PF_fabs (void)
 {
 	float	v;
 	v = G_FLOAT(OFS_PARM0);

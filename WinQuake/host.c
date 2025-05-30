@@ -81,7 +81,7 @@ cvar_t	pausable = {"pausable","1"};
 
 cvar_t	temp1 = {"temp1","0"};
 
-
+extern void IN_MLookDown (void);
 /*
 ================
 Host_EndGame
@@ -883,25 +883,35 @@ void Host_Init (quakeparms_t *parms)
 			Sys_Error ("Couldn't load gfx/colormap.lmp");
 
 #ifndef _WIN32 // on non win32, mouse comes before video for security reasons
-		IN_Init();
+		IN_Init ();
 #endif
-		VID_Init(host_basepal);
+		VID_Init (host_basepal);
 
-		Draw_Init();
-		SCR_Init();
-		R_Init();
+		Draw_Init ();
+		SCR_Init ();
+		R_Init ();
+#ifndef	_WIN32
+	// on Win32, sound initialization has to come before video initialization, so we
+	// can put up a popup if the sound hardware is in use
+		S_Init ();
+#else
 
-		S_Init();
+#ifdef	GLQUAKE
+	// FIXME: doesn't use the new one-window approach yet
+		S_Init ();
+#endif
 
-		CDAudio_Init();
-		Sbar_Init();
-		CL_Init();
+#endif	// _WIN32
+		CDAudio_Init ();
+		Sbar_Init ();
+		CL_Init ();
 #ifdef _WIN32 // on non win32, mouse comes before video for security reasons
-		IN_Init();
+		IN_Init ();
 #endif
 	}
 
 	Cbuf_InsertText ("exec quake.rc\n");
+        IN_MLookDown();
 
 	Hunk_AllocName (0, "-HOST_HUNKLEVEL-");
 	host_hunklevel = Hunk_LowMark ();
@@ -939,10 +949,10 @@ void Host_Shutdown(void)
 	CDAudio_Shutdown ();
 	NET_Shutdown ();
 	S_Shutdown();
-	IN_Shutdown ();
-
+	
 	if (cls.state != ca_dedicated)
 	{
+        IN_Shutdown (); // input is only initialized in Host_Init if we're not dedicated -- kristian
 		VID_Shutdown();
 	}
 }

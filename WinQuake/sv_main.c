@@ -25,7 +25,7 @@ server_t		sv;
 server_static_t	svs;
 
 char	localmodels[MAX_MODELS][5];			// inline model names for precache
-unsigned short pr_crc;
+
 //============================================================================
 
 /*
@@ -205,8 +205,6 @@ void SV_SendServerinfo (client_t *client)
 		MSG_WriteByte (&client->message, GAME_COOP);
 
 	MSG_WriteString (&client->message, PR_GetString(sv.edicts->v.message));
-
-	MSG_WriteString (&client->message,message);
 
 	for (s = sv.model_precache+1 ; *s ; s++)
 		MSG_WriteString (&client->message, *s);
@@ -687,7 +685,7 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 		MSG_WriteByte (msg, ent->v.armorvalue);
 	if (bits & SU_WEAPON)
 		MSG_WriteByte (msg, SV_ModelIndex(PR_GetString(ent->v.weaponmodel)));
-
+	
 	MSG_WriteShort (msg, ent->v.health);
 	MSG_WriteByte (msg, ent->v.currentammo);
 	MSG_WriteByte (msg, ent->v.ammo_shells);
