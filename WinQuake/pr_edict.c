@@ -75,7 +75,7 @@ typedef struct {
 
 static gefv_cache	gefvCache[GEFV_CACHESIZE] = {{NULL, ""}, {NULL, ""}};
 
-char *PR_GetString (int num)
+const char* PR_GetString(int num)
 {
 	if (num >= 0 && num < pr_stringssize)
 		return pr_strings + num;
@@ -83,15 +83,14 @@ char *PR_GetString (int num)
 	{
 		if (!pr_knownstrings[-1 - num])
 		{
-			Host_Error ("PR_GetString: attempt to get a non-existant string %d\n", num);
+			Host_Error("PR_GetString: attempt to get a non-existant string %d\n", num);
 			return "";
 		}
 		return pr_knownstrings[-1 - num];
 	}
 	else
 	{
-		//Host_Error("PR_GetString: invalid string offset %d\n", num);
-		//Gibbon - Who cares about offsets here, it works fine :)
+		Host_Error("PR_GetString: invalid string offset %d\n", num);
 		return "";
 	}
 }
@@ -1161,14 +1160,14 @@ int NUM_FOR_EDICT(edict_t *e)
 
 #define	PR_STRING_ALLOCSLOTS	256
 
-static void PR_AllocStringSlots (void)
+static void PR_AllocStringSlots(void)
 {
 	pr_maxknownstrings += PR_STRING_ALLOCSLOTS;
-	Con_DPrintf("PR_AllocStringSlots: realloc'ing for slots\n", pr_maxknownstrings);
-	pr_knownstrings = (char **) Z_Realloc (pr_knownstrings, pr_maxknownstrings * sizeof(char *));
+	Con_Printf("PR_AllocStringSlots: realloc'ing for %d slots\n", pr_maxknownstrings);
+	pr_knownstrings = (const char**)Z_Realloc((void*)pr_knownstrings, pr_maxknownstrings * sizeof(char*));
 }
 
-int PR_SetEngineString (char *s)
+int PR_SetEngineString(const char* s)
 {
 	int		i;
 
@@ -1195,17 +1194,17 @@ int PR_SetEngineString (char *s)
 			break;
 	}
 #endif
-//	if (i >= pr_numknownstrings)
-//	{
-		if (i >= pr_maxknownstrings)
-			PR_AllocStringSlots();
-		pr_numknownstrings++;
-//	}
+	//	if (i >= pr_numknownstrings)
+	//	{
+	if (i >= pr_maxknownstrings)
+		PR_AllocStringSlots();
+	pr_numknownstrings++;
+	//	}
 	pr_knownstrings[i] = s;
 	return -1 - i;
 }
 
-int PR_AllocString (int size, char **ptr)
+int PR_AllocString(int size, char** ptr)
 {
 	int		i;
 
@@ -1216,15 +1215,14 @@ int PR_AllocString (int size, char **ptr)
 		if (!pr_knownstrings[i])
 			break;
 	}
-//	if (i >= pr_numknownstrings)
-//	{
-		if (i >= pr_maxknownstrings)
-			PR_AllocStringSlots();
-		pr_numknownstrings++;
-//	}
-	pr_knownstrings[i] = (char *)Hunk_AllocName(size, "string");
+	//	if (i >= pr_numknownstrings)
+	//	{
+	if (i >= pr_maxknownstrings)
+		PR_AllocStringSlots();
+	pr_numknownstrings++;
+	//	}
+	pr_knownstrings[i] = (char*)Hunk_AllocName(size, "string");
 	if (ptr)
-		*ptr = pr_knownstrings[i];
+		*ptr = (char*)pr_knownstrings[i];
 	return -1 - i;
 }
-

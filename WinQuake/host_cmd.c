@@ -936,7 +936,7 @@ void Host_Name_f (void)
 		if (Q_strcmp(host_client->name, newName) != 0)
 			Con_Printf ("%s renamed to %s\n", host_client->name, newName);
 	Q_strcpy (host_client->name, newName);
-	host_client->edict->v.netname = host_client->name - pr_strings;
+	host_client->edict->v.netname = PR_SetEngineString(host_client->name);
 	
 // send notification to all clients
 	
@@ -1308,7 +1308,7 @@ void Host_Spawn_f(void)
 		memset(&ent->v, 0, progs->entityfields * 4);
 		ent->v.colormap = NUM_FOR_EDICT(ent);
 		ent->v.team = (host_client->colors & 15) + 1;
-		ent->v.netname = host_client->name - pr_strings;
+		ent->v.netname = PR_SetEngineString(host_client->name);
 
 		// copy spawn parms out of the client_t
 
