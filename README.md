@@ -22,6 +22,8 @@ That's right, cyber-dudes and dudettes! **NAKED WINQUAKE** is so mind-bendingly 
 
 We've taken the sacred WinQuake source code – the holy grail! – and made only the most **MINIMAL, BARELY-THERE TWEAKS** to drag its glorious derrière into the 64-bit era. Think of it like taking a perfectly preserved T-Rex and just, like, giving it a slightly bigger cave so it doesn't bump its head.
 
+![Whhooaahh!!!](screenshots/quake05.png)
+
 ---
 
 ### NO "ENHANCEMENTS." JUST PURE, UNADULTERATED AWESOMENESS!
@@ -39,6 +41,8 @@ AND CHECK THIS UTTERLY SICK TECH, YA FILTHY ANIMALS:
 * POWERED BY THE MYSTICAL INCANTATIONS OF SDL2! And how does this visual majesty, these 320x200 pixels of pure, unfiltered FURY, get blasted onto your screen with such pixel-perfect precision, you ask? We've whispered sweet nothings to the mighty SDL2, forging a sacred pact to ensure every chunky pixel is delivered with the grace of a digital ballerina and the PUNCH of a cybernetic gorilla! It’s the digital duct tape holding the retro dream together, smoother than a greased ogre on a slip 'n slide, ensuring this classic beast runs on whatever hunk o' junk you call a PC!
 
 * RUNS ON YOUR GRANDMA'S DIGITAL TOASTER (PROBABLY)! Think your rig is some forgotten relic from the digital dark ages? Is your PC cobbled together from parts you found dumpster-diving behind a CompUSA in 1997? FEAR NOT, LOW-SPEC LEGEND! NAKED WINQUAKE scoffs at your fancy, power-hungry GPUs! It LAUGHS in the face of your multi-core monstrosities! This masterpiece of software-rendered efficiency is so LIGHTWEIGHT, so UTTERLY UNBOTHERED by your lack of teraflops, IT'LL RUN ON YOUR GRANDMA'S SMART TOASTER! (Assuming it's got, like, a screen and some semblance of a CPU, okay? We're miracle workers, not actual gods... mostly. But it'll run on almost ANYTHING!)
+
+![Slay those BOSSES!](screenshots/quake06.png)
 
 ---
 
