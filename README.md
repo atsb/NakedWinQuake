@@ -30,6 +30,16 @@ You want your "bloom lighting"? Your "particle effects"? Your "anisotropic filte
 
 This is **WINQUAKE WITHOUT BEING BRUTALISED!** No one has "reimagined" it. No one has "modernised" it. No one has DAREd to defile its perfect, low-res, software-rendered majesty. This is the digital equivalent of finding a mint-condition, still-in-the-box copy of your favorite childhood toy, untouched by the greasy mitts of "progress."
 
+AND CHECK THIS UTTERLY SICK TECH, YA FILTHY ANIMALS:
+
+* MOUSE MOVEMENT SO SMOOTH, IT'S SLICKER THAN A GREASED UP VORE! That's right, your aim will be so buttery, so responsive, you'll be pulling off headshots in your sleep! It's like your mouse is directly hardwired into the frag-dimension, translating your every twitch into PURE, PIXELATED CARNAGE! No lag, no float, just INSTANTANEOUS GIBBING ACTION!
+
+* STABLE AS THE GREAT PYRAMID OF GIZA AFTER A PROTEIN SHAKE! Worried about this ancient beast CRUMBLING under the weight of its own awesomeness? FORGET IT! NAKED WINQUAKE is STABLE AS A CYBERNETICALLY-ENHANCED MOUNTAIN! We're talking rock-solid, crash-proof, THIS-THING-WILL-OUTLIVE-COCKROACHES stability! While other games are having digital seizures, NAKED WINQUAKE just keeps on fraggin', a relentless, unstoppable juggernaut of pure, unadulterated code perfection! (perfection for 1990's anyway)..
+
+* POWERED BY THE MYSTICAL INCANTATIONS OF SDL2! And how does this visual majesty, these 320x200 pixels of pure, unfiltered FURY, get blasted onto your screen with such pixel-perfect precision, you ask? We've whispered sweet nothings to the mighty SDL2, forging a sacred pact to ensure every chunky pixel is delivered with the grace of a digital ballerina and the PUNCH of a cybernetic gorilla! It’s the digital duct tape holding the retro dream together, smoother than a greased ogre on a slip 'n slide, ensuring this classic beast runs on whatever hunk o' junk you call a PC!
+
+* RUNS ON YOUR GRANDMA'S DIGITAL TOASTER (PROBABLY)! Think your rig is some forgotten relic from the digital dark ages? Is your PC cobbled together from parts you found dumpster-diving behind a CompUSA in 1997? FEAR NOT, LOW-SPEC LEGEND! NAKED WINQUAKE scoffs at your fancy, power-hungry GPUs! It LAUGHS in the face of your multi-core monstrosities! This masterpiece of software-rendered efficiency is so LIGHTWEIGHT, so UTTERLY UNBOTHERED by your lack of teraflops, IT'LL RUN ON YOUR GRANDMA'S SMART TOASTER! (Assuming it's got, like, a screen and some semblance of a CPU, okay? We're miracle workers, not actual gods... mostly. But it'll run on almost ANYTHING!)
+
 ---
 
 ### WARNING: NOT FOR THE FAINT OF HEART (OR THOSE BORN AFTER 1990)
