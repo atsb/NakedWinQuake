@@ -1050,13 +1050,16 @@ void PR_LoadProgs (void)
 	pr_strings = (char *)progs + progs->ofs_strings;
 	if (progs->ofs_strings + progs->numstrings >= com_filesize)
 		Host_Error ("progs.dat strings go past end of file\n");
+
+	// initialize the strings
 	pr_numknownstrings = 0;
 	pr_maxknownstrings = 0;
 	pr_stringssize = progs->numstrings;
 	if (pr_knownstrings)
-		Z_Free (pr_knownstrings);
+		Z_Free((void*)pr_knownstrings);
 	pr_knownstrings = NULL;
-	PR_SetEngineString("");	// initialize the strings
+	PR_SetEngineString("");
+
 	pr_globaldefs = (ddef_t *)((byte *)progs + progs->ofs_globaldefs);
 	pr_fielddefs = (ddef_t *)((byte *)progs + progs->ofs_fielddefs);
 	pr_statements = (dstatement_t *)((byte *)progs + progs->ofs_statements);

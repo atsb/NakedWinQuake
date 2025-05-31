@@ -208,7 +208,7 @@ void PR_StackTrace (void)
 			Con_Printf ("<NO FUNCTION>\n");
 		}
 		else
-			Con_Printf ("%12s : %s\n", PR_GetString(f->s_file), PR_GetString(f->s_name));
+			Con_Printf("%12s : %s\n", PR_GetString(f->s_file), PR_GetString(f->s_name));
 	}
 }
 
