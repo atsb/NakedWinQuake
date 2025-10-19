@@ -29,6 +29,7 @@ static qboolean mouse_avail;
 static float   mouse_x, mouse_y;
 static int mouse_oldbuttonstate = 0;
 
+static qboolean relative_mode_available = false;
 float accumulated_mouse_dx = 0.0f;
 float accumulated_mouse_dy = 0.0f;
 
@@ -299,12 +300,20 @@ void D_EndDirectRect(int x, int y, int width, int height)
 Sys_SendKeyEvents
 ================
 */
-
 void Sys_SendKeyEvents(void)
 {
     SDL_Event event;
     int sym, state;
     int modstate;
+    static int center_x = 0, center_y = 0;
+    static int last_mouse_x = 0, last_mouse_y = 0;
+    int current_x, current_y;
+
+    // Calculate window center for warp mode
+    if (center_x == 0 || center_y == 0) {
+        center_x = screenWidth / 2;
+        center_y = screenHeight / 2;
+    }
 
     while (SDL_PollEvent(&event))
     {
@@ -395,18 +404,29 @@ void Sys_SendKeyEvents(void)
             case SDLK_KP_ENTER: sym = SDLK_RETURN; break;
             case SDLK_KP_EQUALS: sym = SDLK_EQUALS; break;
             }
-            // If we're not directly handled and still above 255
-            // just force it to 0
             if (sym > 255) sym = 0;
             Key_Event(sym, state);
             break;
 
         case SDL_MOUSEMOTION:
-            accumulated_mouse_dx += event.motion.xrel;
-            accumulated_mouse_dy += event.motion.yrel;
+            if (relative_mode_available) {
+                // Use relative motion events directly
+                accumulated_mouse_dx += event.motion.xrel;
+                accumulated_mouse_dy += event.motion.yrel;
+            } else {
+                // Warp mode fallback
+                current_x = event.motion.x;
+                current_y = event.motion.y;
+                
+                accumulated_mouse_dx += (current_x - center_x);
+                accumulated_mouse_dy += (current_y - center_y);
+                
+                // Warp mouse back to center
+                SDL_WarpMouseInWindow(window, center_x, center_y);
+            }
             break;
 
-        case SDL_WINDOWEVENT: // Handle window events, especially close
+        case SDL_WINDOWEVENT:
             if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
                 CL_Disconnect();
                 Host_ShutdownServer(false);
@@ -414,7 +434,7 @@ void Sys_SendKeyEvents(void)
             }
             break;
 
-        case SDL_QUIT: // This can still be triggered by other means (e.g. Alt+F4 on some systems)
+        case SDL_QUIT:
             CL_Disconnect();
             Host_ShutdownServer(false);
             Sys_Quit();
@@ -428,12 +448,17 @@ void Sys_SendKeyEvents(void)
 void IN_Init(void)
 {
     if (COM_CheckParm("-nomouse")) {
-        mouse_avail = 0; // Ensure mouse_avail is set if -nomouse
+        mouse_avail = 0;
         return;
     }
 
-    if (SDL_SetRelativeMouseMode(SDL_TRUE) != 0) {
+    if (SDL_SetRelativeMouseMode(SDL_TRUE) == 0) {
+        relative_mode_available = true;
+        Sys_Printf("Relative mouse mode enabled\n");
+    } else {
+        relative_mode_available = false;
         Sys_Printf("Warning: Could not enable SDL_SetRelativeMouseMode: %s\n", SDL_GetError());
+        Sys_Printf("Falling back to mouse warp mode\n");
     }
 
     mouse_x = 0.0;
@@ -501,6 +526,10 @@ void IN_Move(usercmd_t* cmd)
     }
     else {
         cl.viewangles[YAW] -= m_yaw.value * mouse_x;
+        while (cl.viewangles[YAW] < 0)
+            cl.viewangles[YAW] += 360;
+        while (cl.viewangles[YAW] >= 360)
+            cl.viewangles[YAW] -= 360;
     }
 
     if (in_mlook.state & 1) {
@@ -509,7 +538,6 @@ void IN_Move(usercmd_t* cmd)
 
     if ((in_mlook.state & 1) && !(in_strafe.state & 1)) {
         cl.viewangles[PITCH] += m_pitch.value * mouse_y;
-        // Clamp pitch
         if (cl.viewangles[PITCH] > 80)
             cl.viewangles[PITCH] = 80;
         if (cl.viewangles[PITCH] < -70)

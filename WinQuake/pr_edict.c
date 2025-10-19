@@ -31,7 +31,7 @@ int			pr_edict_size;	// in bytes
 char		*pr_strings;	// no one should access this. not static
 				// only for two stupid sv_main.c uses.
 static int		pr_stringssize;
-static char		**pr_knownstrings;
+static const char       **pr_knownstrings;
 static int		pr_maxknownstrings;
 static int		pr_numknownstrings;
 static ddef_t		*pr_fielddefs;
