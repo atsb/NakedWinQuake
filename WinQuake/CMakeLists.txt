@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(NakedWinQuake VERSION 1.0.9 LANGUAGES C)
 
 # Options
-option(USE_SDL3 "Use SDL3 instead of SDL2" ON)
+option(USE_SDL3 "Use SDL3" ON)
 option(BUILD_NULL "Build NULL version (no video/sound)" OFF)
 
 # Check for required headers
@@ -75,22 +75,13 @@ else()
     set(INETLIB "")
 endif()
 
-# Find SDL (SDL3 or SDL2) if not building NULL version
+# Find SDL (SDL3) if not building NULL version
 if(NOT BUILD_NULL)
     add_definitions(-DSDL)
     if(USE_SDL3)
         find_package(SDL3 REQUIRED CONFIG)
         set(SDL_LIBRARY SDL3::SDL3)
         message(STATUS "Using SDL3")
-    else()
-        find_package(SDL2 REQUIRED)
-        if(TARGET SDL2::SDL2)
-            set(SDL_LIBRARY SDL2::SDL2)
-        else()
-            set(SDL_LIBRARY ${SDL2_LIBRARIES})
-            include_directories(${SDL2_INCLUDE_DIRS})
-        endif()
-        message(STATUS "Using SDL2")
     endif()
 endif()
 
@@ -305,8 +296,7 @@ if(BUILD_NULL)
     set(PLATFORM_SOURCES ${NULL_SOURCES})
     message(STATUS "Building NULL version (no video/sound)")
 elseif(WIN32)
-    # Windows build - use native Windows or SDL
-    if(USE_SDL3 OR USE_SDL2)
+    if(USE_SDL3)
         set(PLATFORM_SOURCES ${SDL_SOURCES})
         message(STATUS "Building Windows version with SDL")
     else()
@@ -314,22 +304,15 @@ elseif(WIN32)
         message(STATUS "Building native Windows version")
     endif()
 elseif(UNIX AND NOT APPLE)
-    # Linux/Unix build - use SDL or native X11/SVGAlib
+    # Linux/Unix build - use SDL
     if(USE_SDL3 OR NOT BUILD_NULL)
         set(PLATFORM_SOURCES ${SDL_SOURCES})
         message(STATUS "Building Linux version with SDL")
-    else()
-        set(PLATFORM_SOURCES ${LNX_SOURCES})
-        message(STATUS "Building native Linux version (X11/SVGAlib)")
     endif()
 elseif(APPLE)
     # macOS - SDL only
     set(PLATFORM_SOURCES ${SDL_SOURCES})
     message(STATUS "Building macOS version with SDL")
-elseif(CMAKE_SYSTEM_NAME STREQUAL "DOS")
-    # DOS build
-    set(PLATFORM_SOURCES ${DOS_SOURCES})
-    message(STATUS "Building DOS version")
 else()
     # Fallback to SDL for unknown platforms
     set(PLATFORM_SOURCES ${SDL_SOURCES})
