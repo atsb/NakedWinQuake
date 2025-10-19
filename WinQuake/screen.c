@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // screen.c -- master for refresh, status bar, console, chat, notify, etc
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "quakedef.h"
 #include "r_local.h"
 
@@ -67,6 +67,8 @@ qboolean	scr_skipupdate;
 qboolean	block_drawing;
 
 void SCR_ScreenShot_f (void);
+
+extern SDL_Renderer* renderer;
 
 /*
 ===============================================================================
@@ -549,32 +551,17 @@ unsigned char* convert_indexed_to_rgb(const unsigned char* indexed_data, int wid
 	return rgb_data;
 }
 
-static void WritePNGfile(char* filename, SDL_Surface* surface_to_save) {
-	int num_components;
-
-
-	if (surface_to_save->format->BytesPerPixel == 4) {
-		num_components = 4;
-	}
-	else if (surface_to_save->format->BytesPerPixel == 3) {
-		num_components = 3;
-	}
-	else {
-		Con_Printf("WritePNGfile: Unsupported pixel format (BytesPerPixel = %d)\n", surface_to_save->format->BytesPerPixel);
-		return;
-	}
-
+static void WritePNGfile(char* filename, void* pixels, int width, int height, int pitch, int num_components) {
 	int success = stbi_write_png(filename,
-		surface_to_save->w,
-		surface_to_save->h,
+		width,
+		height,
 		num_components,
-		surface_to_save->pixels,
-		surface_to_save->pitch); // Use the surface's pitch
+		pixels,
+		pitch);
 
 	if (!success) {
 		Con_Printf("WritePNGfile: failed to write %s\n", filename);
 	}
-
 }
 
 /* 
@@ -587,7 +574,6 @@ void SCR_ScreenShot_f(void)
 	int     i;
 	char    pngname[80];
 	char    checkname[MAX_OSPATH];
-	extern SDL_Renderer* renderer;
 
 	if (!renderer) {
 		Con_Printf("SCR_ScreenShot_f: SDL_Renderer not available.\n");
@@ -612,35 +598,20 @@ void SCR_ScreenShot_f(void)
 		return;
 	}
 
-	int scaled_width, scaled_height;
-	SDL_GetRendererOutputSize(renderer, &scaled_width, &scaled_height);
-	if (scaled_width == 0 || scaled_height == 0) {
-		Con_Printf("SCR_ScreenShot_f: Invalid renderer output size (%dx%d).\n", scaled_width, scaled_height);
-		return;
-	}
-
-	Uint32 target_sdl_format = SDL_PIXELFORMAT_RGBA32;
-	int expected_bpp = SDL_BYTESPERPIXEL(target_sdl_format);
-
-	SDL_Surface* ss_surface = SDL_CreateRGBSurfaceWithFormat(0, scaled_width, scaled_height,
-		SDL_BITSPERPIXEL(target_sdl_format),
-		target_sdl_format);
-	if (ss_surface == NULL) {
-		Con_Printf("SCR_ScreenShot_f: Couldn't create SDL_Surface: %s\n", SDL_GetError());
-		return;
-	}
-
-	if (SDL_RenderReadPixels(renderer, NULL, ss_surface->format->format, ss_surface->pixels, ss_surface->pitch) != 0) {
+	SDL_Surface* ss_surface = SDL_RenderReadPixels(renderer, NULL);
+	if (!ss_surface) {
 		Con_Printf("SCR_ScreenShot_f: Couldn't read pixels from renderer: %s\n", SDL_GetError());
-		SDL_FreeSurface(ss_surface);
 		return;
 	}
 
-	WritePNGfile(pngname, ss_surface);
-	SDL_FreeSurface(ss_surface);
+	int num_components = 4;
+
+	WritePNGfile(pngname, ss_surface->pixels, ss_surface->w, ss_surface->h, 
+	             ss_surface->pitch, num_components);
+	
+	SDL_DestroySurface(ss_surface);
 	Con_Printf("Wrote %s\n", pngname);
 }
-
 
 //=============================================================================
 
@@ -968,3 +939,4 @@ void SCR_UpdateWholeScreen (void)
 	scr_fullupdate = 0;
 	SCR_UpdateScreen ();
 }
+

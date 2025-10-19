@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(NakedWinQuake VERSION 1.0.9 LANGUAGES C)
 
 # Options
-option(USE_SDL3 "Use SDL3 instead of SDL2" OFF)
+option(USE_SDL3 "Use SDL3 instead of SDL2" ON)
 option(BUILD_NULL "Build NULL version (no video/sound)" OFF)
 
 # Check for required headers

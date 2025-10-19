@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4 -*- */
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -300,9 +300,9 @@ double Sys_FloatTime(void)
 {
 	static Uint64 start_ticks = 0;
 	if (start_ticks == 0) {
-		start_ticks = SDL_GetTicks64();
+		start_ticks = SDL_GetTicks();
 	}
-	Uint64 current_ticks = SDL_GetTicks64();
+	Uint64 current_ticks = SDL_GetTicks();
 	return (current_ticks - start_ticks) / 1000.0;
 }
 

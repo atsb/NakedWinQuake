@@ -1,11 +1,11 @@
-// vid_sdl.h -- sdl video driver 
+// vid_sdl.c -- SDL3 video driver with GPU-accelerated rendering
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "quakedef.h"
 #include "d_local.h"
 
-extern viddef_t    vid;                // global video state
-unsigned short  d_8to16table[256];
+extern viddef_t vid;
+unsigned short d_8to16table[256];
 
 #define BASEWIDTH           320
 #define BASEHEIGHT          200
@@ -13,76 +13,62 @@ unsigned short  d_8to16table[256];
 unsigned screenWidth = 320;
 unsigned screenHeight = 200;
 
-int    VGA_width, VGA_height, VGA_rowbytes, VGA_bufferrowbytes = 0;
+int VGA_width, VGA_height, VGA_rowbytes, VGA_bufferrowbytes = 0;
 byte* VGA_pagebase;
 
-static int	lockcount;
-static qboolean	vid_initialized = false;
+static int lockcount;
+static qboolean vid_initialized = false;
 static SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 static SDL_Texture* texture = NULL;
-static Uint32 SdlPalette[256]; // For storing the palette in texture format
-static byte* frame_buffer;    // 8-bit indexed pixel data buffer
-static qboolean	palette_changed;
-static unsigned char	vid_curpal[256 * 3];	/* save for mode changes */
+static Uint32 SdlPalette[256];
+static byte* frame_buffer;
+static qboolean palette_changed;
+static unsigned char vid_curpal[256 * 3];
 static qboolean mouse_avail;
-static float   mouse_x, mouse_y;
+static float mouse_x, mouse_y;
 static int mouse_oldbuttonstate = 0;
 
 static qboolean relative_mode_available = false;
 float accumulated_mouse_dx = 0.0f;
 float accumulated_mouse_dy = 0.0f;
 
-// No support for option menus
 void (*vid_menudrawfn)(void) = NULL;
 void (*vid_menukeyfn)(int key) = NULL;
 
-void    VID_SetPalette(unsigned char* palette)
+void VID_SetPalette(unsigned char* palette)
 {
-    int		i;
-    SDL_Color colors[256];
+    int i;
     palette_changed = true;
 
     if (palette != vid_curpal)
         memcpy(vid_curpal, palette, sizeof(vid_curpal));
 
-    for (i = 0; i < 256; ++i)
-    {
-        colors[i].r = *palette++;
-        colors[i].g = *palette++;
-        colors[i].b = *palette++;
-    }
-
+    // Build 32-bit ARGB palette for GPU
     for (i = 0; i < 256; ++i) {
-        // Simpler direct construction for ARGB8888 (0xAARRGGBB)
-        SdlPalette[i] = ((Uint32)0xFF << 24) | // Alpha
-            ((Uint32)colors[i].r << 16) |
-            ((Uint32)colors[i].g << 8) |
-            ((Uint32)colors[i].b);
+        SdlPalette[i] = ((Uint32)0xFF << 24) |
+                        ((Uint32)palette[i*3] << 16) |
+                        ((Uint32)palette[i*3+1] << 8) |
+                        ((Uint32)palette[i*3+2]);
     }
 }
 
-void    VID_ShiftPalette(unsigned char* palette)
+void VID_ShiftPalette(unsigned char* palette)
 {
     VID_SetPalette(palette);
 }
 
-void    VID_Init(unsigned char* palette)
+void VID_Init(unsigned char* palette)
 {
-    int pnum, chunk;
+    int chunk;
     byte* cache;
     int cachesize;
-    Uint8 video_bpp;
-    Uint16 video_w, video_h;
-    Uint32 flags;
     char caption[50];
-    Uint32 window_flags = 0; // For SDL_CreateWindow
+    SDL_WindowFlags window_flags = 0;
 
-    // Load the SDL library
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
         Sys_Error("VID: Couldn't load SDL: %s", SDL_GetError());
 
-    // Set up display mode (width and height)
     vid.width = screenWidth;
     vid.height = screenHeight;
     vid.maxwarpwidth = WARP_WIDTH;
@@ -92,46 +78,58 @@ void    VID_Init(unsigned char* palette)
         window_flags |= SDL_WINDOW_FULLSCREEN;
     }
 
-    SDL_DisplayMode DispMode;
-    SDL_GetCurrentDisplayMode(0, &DispMode);
-
+    const SDL_DisplayMode* mode = SDL_GetCurrentDisplayMode(SDL_GetPrimaryDisplay());
+    if (mode) {
 #ifdef _WIN32
-    if (COM_CheckParm("-window")) {
-        screenWidth = DispMode.w * 3.0 / 4.0;
-        screenHeight = DispMode.h * 3.0 / 4.0;
-    }
-    else {
-        screenWidth = DispMode.h * 3.0 / 4.0;
-        screenHeight = DispMode.w * 3.0 / 4.0;
-    }
+        if (COM_CheckParm("-window")) {
+            screenWidth = mode->w * 3.0 / 4.0;
+            screenHeight = mode->h * 3.0 / 4.0;
+        }
+        else {
+            screenWidth = mode->h * 3.0 / 4.0;
+            screenHeight = mode->w * 3.0 / 4.0;
+        }
 #else
-    screenWidth = DispMode.w * 3.0 / 4.0;
-    screenHeight = DispMode.h * 3.0 / 4.0;
+        screenWidth = mode->w * 3.0 / 4.0;
+        screenHeight = mode->h * 3.0 / 4.0;
 #endif
+    }
 
-    window = SDL_CreateWindow("NakedWinQuake", // Title will be set later
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        screenWidth, screenHeight, window_flags);
+    window = SDL_CreateWindow("NakedWinQuake",
+                               screenWidth, screenHeight,
+                               window_flags);
     if (!window) {
         Sys_Error("VID: Couldn't create window: %s\n", SDL_GetError());
     }
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+    // Create GPU-accelerated renderer
+    renderer = SDL_CreateRenderer(window, NULL);
     if (!renderer) {
         SDL_DestroyWindow(window);
         Sys_Error("VID: Couldn't create renderer: %s\n", SDL_GetError());
     }
 
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING,
-        vid.width, vid.height);
+    // Use VSync for smooth presentation on ARM
+    SDL_SetRenderVSync(renderer, 1);
+    
+    // Use GPU scaling with nearest neighbor
+    SDL_SetRenderLogicalPresentation(renderer, vid.width, vid.height,
+                                      SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
+    // Create streaming texture - GPU will handle the blitting
+    texture = SDL_CreateTexture(renderer,
+                                 SDL_PIXELFORMAT_ARGB8888,
+                                 SDL_TEXTUREACCESS_STREAMING,
+                                 vid.width, vid.height);
     if (!texture) {
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         Sys_Error("VID: Couldn't create texture: %s\n", SDL_GetError());
     }
 
-    // Allocate the 8-bit frame buffer
+    // Nearest neighbor for pixel-perfect scaling
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+
     frame_buffer = (byte*)malloc(vid.width * vid.height);
     if (!frame_buffer) {
         SDL_DestroyTexture(texture);
@@ -140,12 +138,11 @@ void    VID_Init(unsigned char* palette)
         Sys_Error("VID: Couldn't allocate frame_buffer\n");
     }
 
-    VID_SetPalette(palette); // This will now populate SdlPalette
+    VID_SetPalette(palette);
 
     sprintf(caption, "NakedWinQuake - Version %4.2f", (float)VERSION);
     SDL_SetWindowTitle(window, caption);
 
-    // Update vid structure members
     VGA_width = vid.conwidth = vid.width;
     VGA_height = vid.conheight = vid.height;
     vid.aspect = ((float)vid.height / (float)vid.width) * (320.0 / 200.0);
@@ -156,7 +153,6 @@ void    VID_Init(unsigned char* palette)
     VGA_pagebase = vid.buffer = vid.conbuffer = vid.direct = frame_buffer;
     vid.rowbytes = vid.conrowbytes = vid.width;
 
-    // allocate z buffer and surface cache
     chunk = vid.width * vid.height * sizeof(*d_pzbuffer);
     cachesize = D_SurfaceCacheForRes(vid.width, vid.height);
     chunk += cachesize;
@@ -164,18 +160,17 @@ void    VID_Init(unsigned char* palette)
     if (d_pzbuffer == NULL)
         Sys_Error("Not enough memory for video mode\n");
 
-    // initialize the cache memory 
-    cache = (byte*)d_pzbuffer
-        + vid.width * vid.height * sizeof(*d_pzbuffer);
+    cache = (byte*)d_pzbuffer + vid.width * vid.height * sizeof(*d_pzbuffer);
     D_InitCaches(cache, cachesize);
 
-    // initialize the mouse
-    SDL_ShowCursor(SDL_DISABLE);
+    SDL_HideCursor();
 
     vid_initialized = true;
+    
+    Con_Printf("Video: GPU-accelerated renderer initialized\n");
 }
 
-void    VID_Shutdown(void)
+void VID_Shutdown(void)
 {
     if (vid_initialized)
     {
@@ -196,120 +191,132 @@ void    VID_Shutdown(void)
             frame_buffer = NULL;
         }
 
-        vid_initialized = 0; // Set to false after cleanup
-        SDL_QuitSubSystem(SDL_INIT_VIDEO); // This should be called after destroying window/renderer/texture associated with it
+        vid_initialized = false;
+        SDL_Quit();
     }
 }
 
-void    VID_Update(vrect_t* rects)
+void VID_Update(vrect_t* rects)
 {
-    (void)rects; // Mark as unused to prevent compiler warnings
+    void* pixels;
+    int pitch;
+    static Uint64 last_frame_time = 0;
+    Uint64 current_time;
+    Uint64 frame_time;
+    const Uint64 target_frame_time = 16;
 
-    void* texture_pixels;
-    int texture_pitch;
-    byte* source_buffer; // Use d_viewbuffer to account for r_dowarp
-
-    if (!vid_initialized || !renderer || !texture) return;
-
-    source_buffer = frame_buffer;
-
-    // Ensure source_buffer is valid
-    if (!source_buffer) {
-        Sys_Error("VID_Update: source_buffer is NULL\n");
+    if (!vid_initialized || !renderer || !texture || !frame_buffer)
         return;
+
+    current_time = SDL_GetTicks();
+    frame_time = current_time - last_frame_time;
+    
+    if (frame_time < target_frame_time) {
+        SDL_Delay(target_frame_time - frame_time);
+        current_time = SDL_GetTicks();
     }
+    last_frame_time = current_time;
 
-    if (SDL_LockTexture(texture, NULL, &texture_pixels, &texture_pitch) == 0) {
-        Uint8* src_row = source_buffer;
-        Uint32* dst_row = (Uint32*)texture_pixels;
-        int current_width;
+    if (!SDL_LockTexture(texture, NULL, &pixels, &pitch))
+        return;
 
-        if (r_dowarp && d_viewbuffer == r_warpbuffer) {
-            current_width = WARP_WIDTH; // Use WARP_WIDTH for pitch if warp buffer is active source
-        }
-        else {
-            current_width = vid.width; // Use vid.width for pitch if frame_buffer is active source
-        }
+    byte* src = frame_buffer;
+    Uint32* dst = (Uint32*)pixels;
+    int total = vid.width * vid.height;
 
-        for (int y = 0; y < vid.height; ++y) {
-            for (int x = 0; x < current_width; ++x) { // Use current_width for iteration up to screen width
-                if (x < vid.width) { // Only write pixels within the actual texture width
-                    dst_row[x] = SdlPalette[src_row[x]];
-                }
-            }
-            src_row += current_width; // Pitch of the source 8-bit buffer (vid.width or WARP_WIDTH)
-            dst_row = (Uint32*)((Uint8*)dst_row + texture_pitch); // Pitch of 32-bit texture
-        }
-        SDL_UnlockTexture(texture);
+#if defined(__aarch64__) || defined(__ARM_ARCH_8__) || defined(__arm64__)
+    // ARM64 optimized version with prefetching
+    __builtin_prefetch(SdlPalette, 0, 3);
+    
+    int i = 0;
+    
+    // Process 16 pixels at a time
+    for (; i <= total - 16; i += 16) {
+        __builtin_prefetch(src + i + 64, 0, 0);
+        
+        dst[i+0]  = SdlPalette[src[i+0]];
+        dst[i+1]  = SdlPalette[src[i+1]];
+        dst[i+2]  = SdlPalette[src[i+2]];
+        dst[i+3]  = SdlPalette[src[i+3]];
+        dst[i+4]  = SdlPalette[src[i+4]];
+        dst[i+5]  = SdlPalette[src[i+5]];
+        dst[i+6]  = SdlPalette[src[i+6]];
+        dst[i+7]  = SdlPalette[src[i+7]];
+        dst[i+8]  = SdlPalette[src[i+8]];
+        dst[i+9]  = SdlPalette[src[i+9]];
+        dst[i+10] = SdlPalette[src[i+10]];
+        dst[i+11] = SdlPalette[src[i+11]];
+        dst[i+12] = SdlPalette[src[i+12]];
+        dst[i+13] = SdlPalette[src[i+13]];
+        dst[i+14] = SdlPalette[src[i+14]];
+        dst[i+15] = SdlPalette[src[i+15]];
     }
-    else {
-        Sys_Printf("VID_Update: Couldn't lock texture: %s\n", SDL_GetError());
-        return; // Don't proceed if texture can't be locked
+    
+    for (; i < total; i++) {
+        dst[i] = SdlPalette[src[i]];
     }
+    
+#else
+    int i = 0;
+    
+    for (; i <= total - 8; i += 8) {
+        dst[i+0] = SdlPalette[src[i+0]];
+        dst[i+1] = SdlPalette[src[i+1]];
+        dst[i+2] = SdlPalette[src[i+2]];
+        dst[i+3] = SdlPalette[src[i+3]];
+        dst[i+4] = SdlPalette[src[i+4]];
+        dst[i+5] = SdlPalette[src[i+5]];
+        dst[i+6] = SdlPalette[src[i+6]];
+        dst[i+7] = SdlPalette[src[i+7]];
+    }
+    
+    for (; i < total; i++) {
+        dst[i] = SdlPalette[src[i]];
+    }
+    
+#endif
 
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_UnlockTexture(texture);
+    SDL_RenderTexture(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
 }
 
-/*
-================
-D_BeginDirectRect
-================
-*/
 void D_BeginDirectRect(int x, int y, byte* pbitmap, int width, int height)
 {
     Uint8* offset;
 
-    // if (!screen) return; // screen is no longer the direct drawing target
-    if (!frame_buffer) return; // Check if frame_buffer is allocated
+    if (!frame_buffer) return;
 
-    // Assuming x coordinates can be negative for right-alignment, adjust for vid.width
-    if (x < 0) x = vid.width + x; // vid.width instead of screen->w
+    if (x < 0) x = vid.width + x;
 
-    // Ensure x and y are within bounds to prevent buffer overflow
     if (x < 0 || x >= vid.width || y < 0 || y >= vid.height) return;
-    if (x + width > vid.width) width = vid.width - x; // Clamp width
-    if (y + height > vid.height) height = vid.height - y; // Clamp height
+    if (x + width > vid.width) width = vid.width - x;
+    if (y + height > vid.height) height = vid.height - y;
     if (width <= 0 || height <= 0) return;
 
-    offset = frame_buffer + y * vid.width + x; // vid.width is the pitch of frame_buffer
+    offset = frame_buffer + y * vid.width + x;
 
     while (height--)
     {
         memcpy(offset, pbitmap, width);
-        offset += vid.width; // Use vid.width for pitch
+        offset += vid.width;
         pbitmap += width;
     }
 }
 
-
-/*
-================
-D_EndDirectRect
-================
-*/
 void D_EndDirectRect(int x, int y, int width, int height)
 {
-    (void)x; (void)y; (void)width; (void)height; // Mark as unused
+    (void)x; (void)y; (void)width; (void)height;
 }
 
-
-/*
-================
-Sys_SendKeyEvents
-================
-*/
 void Sys_SendKeyEvents(void)
 {
     SDL_Event event;
     int sym, state;
-    int modstate;
+    SDL_Keymod modstate;
     static int center_x = 0, center_y = 0;
-    static int last_mouse_x = 0, last_mouse_y = 0;
     int current_x, current_y;
 
-    // Calculate window center for warp mode
     if (center_x == 0 || center_y == 0) {
         center_x = screenWidth / 2;
         center_y = screenHeight / 2;
@@ -319,11 +326,12 @@ void Sys_SendKeyEvents(void)
     {
         switch (event.type) {
 
-        case SDL_KEYDOWN:
-        case SDL_KEYUP:
-            sym = event.key.keysym.sym;
-            state = event.key.state;
+        case SDL_EVENT_KEY_DOWN:
+        case SDL_EVENT_KEY_UP:
+            sym = event.key.key;
+            state = (event.type == SDL_EVENT_KEY_DOWN);
             modstate = SDL_GetModState();
+            
             switch (sym)
             {
             case SDLK_DELETE: sym = K_DEL; break;
@@ -357,44 +365,44 @@ void Sys_SendKeyEvents(void)
             case SDLK_RALT:
             case SDLK_LALT: sym = K_ALT; break;
             case SDLK_KP_0:
-                if (modstate & KMOD_NUM) sym = K_INS;
+                if (modstate & SDL_KMOD_NUM) sym = K_INS;
                 else sym = SDLK_0;
                 break;
             case SDLK_KP_1:
-                if (modstate & KMOD_NUM) sym = K_END;
+                if (modstate & SDL_KMOD_NUM) sym = K_END;
                 else sym = SDLK_1;
                 break;
             case SDLK_KP_2:
-                if (modstate & KMOD_NUM) sym = K_DOWNARROW;
+                if (modstate & SDL_KMOD_NUM) sym = K_DOWNARROW;
                 else sym = SDLK_2;
                 break;
             case SDLK_KP_3:
-                if (modstate & KMOD_NUM) sym = K_PGDN;
+                if (modstate & SDL_KMOD_NUM) sym = K_PGDN;
                 else sym = SDLK_3;
                 break;
             case SDLK_KP_4:
-                if (modstate & KMOD_NUM) sym = K_LEFTARROW;
+                if (modstate & SDL_KMOD_NUM) sym = K_LEFTARROW;
                 else sym = SDLK_4;
                 break;
             case SDLK_KP_5: sym = SDLK_5; break;
             case SDLK_KP_6:
-                if (modstate & KMOD_NUM) sym = K_RIGHTARROW;
+                if (modstate & SDL_KMOD_NUM) sym = K_RIGHTARROW;
                 else sym = SDLK_6;
                 break;
             case SDLK_KP_7:
-                if (modstate & KMOD_NUM) sym = K_HOME;
+                if (modstate & SDL_KMOD_NUM) sym = K_HOME;
                 else sym = SDLK_7;
                 break;
             case SDLK_KP_8:
-                if (modstate & KMOD_NUM) sym = K_UPARROW;
+                if (modstate & SDL_KMOD_NUM) sym = K_UPARROW;
                 else sym = SDLK_8;
                 break;
             case SDLK_KP_9:
-                if (modstate & KMOD_NUM) sym = K_PGUP;
+                if (modstate & SDL_KMOD_NUM) sym = K_PGUP;
                 else sym = SDLK_9;
                 break;
             case SDLK_KP_PERIOD:
-                if (modstate & KMOD_NUM) sym = K_DEL;
+                if (modstate & SDL_KMOD_NUM) sym = K_DEL;
                 else sym = SDLK_PERIOD;
                 break;
             case SDLK_KP_DIVIDE: sym = SDLK_SLASH; break;
@@ -408,37 +416,31 @@ void Sys_SendKeyEvents(void)
             Key_Event(sym, state);
             break;
 
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             if (relative_mode_available) {
-                // Use relative motion events directly
                 accumulated_mouse_dx += event.motion.xrel;
                 accumulated_mouse_dy += event.motion.yrel;
             } else {
-                // Warp mode fallback
-                current_x = event.motion.x;
-                current_y = event.motion.y;
+                current_x = (int)event.motion.x;
+                current_y = (int)event.motion.y;
                 
                 accumulated_mouse_dx += (current_x - center_x);
                 accumulated_mouse_dy += (current_y - center_y);
-                
-                // Warp mouse back to center
-                SDL_WarpMouseInWindow(window, center_x, center_y);
             }
             break;
 
-        case SDL_WINDOWEVENT:
-            if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
-                CL_Disconnect();
-                Host_ShutdownServer(false);
-                Sys_Quit();
-            }
-            break;
-
-        case SDL_QUIT:
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
             CL_Disconnect();
             Host_ShutdownServer(false);
             Sys_Quit();
             break;
+
+        case SDL_EVENT_QUIT:
+            CL_Disconnect();
+            Host_ShutdownServer(false);
+            Sys_Quit();
+            break;
+            
         default:
             break;
         }
@@ -452,12 +454,12 @@ void IN_Init(void)
         return;
     }
 
-    if (SDL_SetRelativeMouseMode(SDL_TRUE) == 0) {
+    if (SDL_SetWindowRelativeMouseMode(window, true)) {
         relative_mode_available = true;
         Sys_Printf("Relative mouse mode enabled\n");
     } else {
         relative_mode_available = false;
-        Sys_Printf("Warning: Could not enable SDL_SetRelativeMouseMode: %s\n", SDL_GetError());
+        Sys_Printf("Warning: Could not enable relative mouse mode: %s\n", SDL_GetError());
         Sys_Printf("Falling back to mouse warp mode\n");
     }
 
@@ -473,7 +475,7 @@ void IN_Shutdown(void)
 {
     if (mouse_avail)
     {
-        SDL_SetRelativeMouseMode(SDL_FALSE);
+        SDL_SetWindowRelativeMouseMode(window, false);
     }
     mouse_avail = 0;
 }
@@ -481,7 +483,7 @@ void IN_Shutdown(void)
 void IN_Commands(void)
 {
     int i;
-    int current_mouse_buttonstate_sdl;
+    Uint32 current_mouse_buttonstate_sdl;
     int ingame_mouse_buttonstate;
 
     if (!mouse_avail) return;
@@ -489,13 +491,12 @@ void IN_Commands(void)
     current_mouse_buttonstate_sdl = SDL_GetMouseState(NULL, NULL);
 
     ingame_mouse_buttonstate = 0;
-    if (current_mouse_buttonstate_sdl & SDL_BUTTON(SDL_BUTTON_LEFT))
+    if (current_mouse_buttonstate_sdl & SDL_BUTTON_LMASK)
         ingame_mouse_buttonstate |= (1 << 0);
-    if (current_mouse_buttonstate_sdl & SDL_BUTTON(SDL_BUTTON_RIGHT))
+    if (current_mouse_buttonstate_sdl & SDL_BUTTON_RMASK)
         ingame_mouse_buttonstate |= (1 << 1);
-    if (current_mouse_buttonstate_sdl & SDL_BUTTON(SDL_BUTTON_MIDDLE))
+    if (current_mouse_buttonstate_sdl & SDL_BUTTON_MMASK)
         ingame_mouse_buttonstate |= (1 << 2);
-
 
     for (i = 0; i < 3; i++) {
         if ((ingame_mouse_buttonstate & (1 << i)) && !(mouse_oldbuttonstate & (1 << i)))
@@ -509,6 +510,8 @@ void IN_Commands(void)
 
 void IN_Move(usercmd_t* cmd)
 {
+    static Uint64 last_warp_time = 0;
+    
     if (!mouse_avail)
         return;
 
@@ -517,6 +520,17 @@ void IN_Move(usercmd_t* cmd)
 
     accumulated_mouse_dx = 0.0f;
     accumulated_mouse_dy = 0.0f;
+
+    // If not in relative mode, warp mouse periodically (not every frame!)
+    if (!relative_mode_available) {
+        Uint64 now = SDL_GetTicks();
+        if (now - last_warp_time > 100) { // Only warp every 100ms
+            int center_x = screenWidth / 2;
+            int center_y = screenHeight / 2;
+            SDL_WarpMouseInWindow(window, center_x, center_y);
+            last_warp_time = now;
+        }
+    }
 
     mouse_x *= sensitivity.value;
     mouse_y *= sensitivity.value;
@@ -553,12 +567,8 @@ void IN_Move(usercmd_t* cmd)
     }
 }
 
-/*
-================
-Sys_ConsoleInput
-================
-*/
 char* Sys_ConsoleInput(void)
 {
     return 0;
 }
+
