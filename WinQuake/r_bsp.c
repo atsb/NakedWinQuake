@@ -188,7 +188,9 @@ void R_RecursiveClipBPoly (bedge_t *pedges, mnode_t *pnode, msurface_t *psurf)
 		lastdist = DotProduct (plastvert->position, tplane.normal) -
 				   tplane.dist;
 
-		if (lastdist > 0)
+// CyanBun96: the >= instead of > in lastside and side prevents corruption in
+// some edge cases (no pun intended)
+		if (lastdist >= 0)
 			lastside = 0;
 		else
 			lastside = 1;
@@ -197,7 +199,7 @@ void R_RecursiveClipBPoly (bedge_t *pedges, mnode_t *pnode, msurface_t *psurf)
 
 		dist = DotProduct (pvert->position, tplane.normal) - tplane.dist;
 
-		if (dist > 0)
+		if (dist >= 0)
 			side = 0;
 		else
 			side = 1;
